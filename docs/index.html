@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSS Reasoning Engine — Agent Skills for modern native CSS</title>
+  <meta name="description" content="Deterministic Agent Skills that give AI coding assistants CSS engineering judgment: generate, review, and refactor modern native CSS." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="site-header">
+      <span class="wordmark">cascade<span class="wordmark-suffix">.reasoning</span></span>
+      <nav class="top-nav" aria-label="External links">
+        <a class="top-nav-link" href="https://github.com/Sensiblemnd/css-reasoning-engine">GitHub ↗</a>
+      </nav>
+    </header>
+
+    <nav class="side-nav" aria-label="Sections">
+      <ol class="side-nav-list">
+        <li class="side-nav-item"><a class="side-nav-link" href="#overview">Overview</a></li>
+        <li class="side-nav-item"><a class="side-nav-link" href="#skills">The Skills</a></li>
+        <li class="side-nav-item"><a class="side-nav-link" href="#layers">Layer Contract</a></li>
+        <li class="side-nav-item"><a class="side-nav-link" href="#profiles">Browser Profiles</a></li>
+        <li class="side-nav-item"><a class="side-nav-link" href="#install">Install</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <section id="overview" class="panel hero">
+        <span class="eyebrow">@layer reset, tokens, base, layout, components, utilities, overrides;</span>
+        <h1 class="hero-title">CSS engineering judgment, encoded as Agent Skills.</h1>
+        <p class="hero-lede">
+          Three deterministic rule systems — <strong>css-engineer</strong>, <strong>css-reviewer</strong>,
+          and <strong>css-refactor</strong> — that route into one shared knowledge base, so AI coding
+          agents generate, audit, and modernize CSS the same way every time.
+        </p>
+        <div class="cta-row">
+          <a class="button is-accent" href="https://github.com/Sensiblemnd/css-reasoning-engine">View on GitHub</a>
+          <a class="button" href="#skills">Browse the skills</a>
+        </div>
+      </section>
+
+      <section id="skills" class="panel">
+        <div class="section-heading">
+          <h2 class="section-heading-title">One knowledge base, three roles</h2>
+          <p class="section-heading-lede">Each skill is a lean core that resolves rules from the same shared references — the rules can't drift between generating, reviewing, and refactoring.</p>
+        </div>
+        <div class="skill-grid">
+          <article class="skill-card">
+            <span class="skill-role">Generate</span>
+            <h3 class="skill-card-title">css-engineer</h3>
+            <p class="skill-card-description">Writes new modern native CSS: decision engine for layout, responsive, color, and animation choices, cascade layers, tokens, logical properties, and a self-review checklist.</p>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">Audit</span>
+            <h3 class="skill-card-title">css-reviewer</h3>
+            <p class="skill-card-description">Reviews existing CSS and reports structured findings — Issue, Severity, Location, Problem, Why, Fix, Example — across architecture, modern CSS, accessibility, and performance.</p>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">Modernize</span>
+            <h3 class="skill-card-title">css-refactor</h3>
+            <p class="skill-card-description">Refactors CSS without changing rendering: literals to tokens, physical to logical properties, Sass to native, unlayered to layered — with a risk-rated change list.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="layers" class="panel">
+        <div class="section-heading">
+          <h2 class="section-heading-title">The layer contract</h2>
+          <p class="section-heading-lede">Every rule the skills generate lands in exactly one of these layers, declared once, in this order.</p>
+        </div>
+        <ol class="layer-stack">
+          <li class="layer-card">
+            <h3 class="layer-name">reset</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>Normalization, box-sizing</dd>
+              <dt>Never</dt><dd>Component styles</dd>
+            </dl>
+          </li>
+          <li class="layer-card">
+            <h3 class="layer-name">tokens</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>:root custom properties, @property registrations</dd>
+              <dt>Never</dt><dd>Selectors other than :root / ::backdrop</dd>
+            </dl>
+          </li>
+          <li class="layer-card">
+            <h3 class="layer-name">base</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>Element defaults (body, a, h1–h6)</dd>
+              <dt>Never</dt><dd>Class selectors</dd>
+            </dl>
+          </li>
+          <li class="layer-card">
+            <h3 class="layer-name">layout</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>Page-level scaffolding: shells, grids, regions</dd>
+              <dt>Never</dt><dd>Component internals</dd>
+            </dl>
+          </li>
+          <li class="layer-card">
+            <h3 class="layer-name">components</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>Component classes</dd>
+              <dt>Never</dt><dd>Page-specific overrides</dd>
+            </dl>
+          </li>
+          <li class="layer-card">
+            <h3 class="layer-name">utilities</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>Single-purpose helpers</dd>
+              <dt>Never</dt><dd>Multi-declaration rule blocks</dd>
+            </dl>
+          </li>
+          <li class="layer-card">
+            <h3 class="layer-name">overrides</h3>
+            <dl class="layer-card-meta">
+              <dt>Contains</dt><dd>Third-party fixes, documented exceptions</dd>
+              <dt>Never</dt><dd>New design decisions</dd>
+            </dl>
+          </li>
+        </ol>
+      </section>
+
+      <section id="profiles" class="panel">
+        <div class="section-heading">
+          <h2 class="section-heading-title">Browser profiles</h2>
+          <p class="section-heading-lede">Every task resolves a profile before generating CSS: explicit instruction → project config → default <code>evergreen</code>.</p>
+        </div>
+        <table class="profile-table">
+          <thead>
+            <tr>
+              <th scope="col">Profile</th>
+              <th scope="col">Fallbacks</th>
+              <th scope="col">Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>modern</td>
+              <td>none</td>
+              <td>Latest engines; ship all Stable features directly, no @supports.</td>
+            </tr>
+            <tr>
+              <td>evergreen</td>
+              <td>minimal</td>
+              <td>Auto-updating browsers; @supports reserved for Emerging features.</td>
+            </tr>
+            <tr>
+              <td>enterprise</td>
+              <td>progressive</td>
+              <td>Slow-updating fleets; working baseline first, then enhance.</td>
+            </tr>
+            <tr>
+              <td>legacy</td>
+              <td>extensive</td>
+              <td>Every non-universal feature needs a working fallback.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="install" class="panel">
+        <div class="section-heading">
+          <h2 class="section-heading-title">Install</h2>
+          <p class="section-heading-lede">Symlink the skills into Claude Code so they stay in sync with this repo.</p>
+        </div>
+        <div class="terminal">
+          <div class="terminal-chrome" aria-hidden="true"></div>
+          <pre><code>ln -s "$PWD"/skills/css-engineer "$PWD"/skills/css-reviewer \
+      "$PWD"/skills/css-refactor "$PWD"/skills/shared ~/.claude/skills/</code></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    Built with its own <code>css-engineer</code> skill. MIT-licensed on <a href="https://github.com/Sensiblemnd/css-reasoning-engine">GitHub</a>.
+  </footer>
+</body>
+</html>
