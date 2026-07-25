@@ -380,6 +380,17 @@
     max-inline-size: 60ch;
   }
 
+  .source-link {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--text-s);
+    color: var(--color-accent-2);
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+
   .skill-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
@@ -415,6 +426,11 @@
     .skill-card-description {
       color: var(--color-ink-muted);
       font-size: var(--text-s);
+    }
+
+    .source-link {
+      margin-block-start: auto;
+      padding-block-start: var(--space-2xs);
     }
 
     @container skill-card (inline-size > 20rem) {

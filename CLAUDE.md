@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of Claude Agent Skills that give AI coding assistants CSS engineering judgment. The skills are deterministic rule systems (closer to an ESLint config or an architecture RFC than a tutorial), not example code to imitate. There is no build, lint, or test tooling — the repository's output *is* the skill definitions plus a static marketing/docs site.
 
+## Working conventions
+
+Use the plain Read/Edit/Write tools for file changes in this repo, not shell one-liners (`sed`, `perl -pi`, `awk`, etc.) — even for simple find/replace across a file. Prefer `Edit` with `replace_all: true` over a scripted substitution.
+
 ## Repository structure
 
 ```
