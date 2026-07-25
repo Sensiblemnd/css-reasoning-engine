@@ -100,6 +100,11 @@ Priority: HIGH
 
 - Prefer `will-change` never as a default; only for a measured problem, applied just before the animation and removed after.
 
+### Containing Block Side Effect
+
+- Required: before adding `transform`, `filter`, `backdrop-filter`, `perspective`, or `will-change: transform` (any of these, even at `1`/`none` idle values) to an element, check for `position: fixed` descendants anywhere inside it — these properties create a new containing block, so the descendant resolves `fixed` positioning against the transformed/filtered ancestor instead of the viewport, breaking modals, tooltips, and sticky overlays nested inside animated cards/lists.
+- Required: when this conflict exists, either animate on a wrapper that has no `position: fixed` descendants, or render the fixed-position element outside the animated ancestor (portal/late-DOM placement) instead of removing the animation.
+
 ## Rendering Containment
 
 Priority: MEDIUM
@@ -122,3 +127,12 @@ Priority: MEDIUM
 
 - Prefer `aspect-ratio` + reserved space (`contain-intrinsic-size`, explicit grid tracks) so async content (images, embeds, fonts) does not shift layout.
 - Required: `font-display: swap` or `optional` on `@font-face`; prefer `size-adjust` metrics overrides on fallback fonts for zero-CLS font loading.
+- Prefer `scrollbar-gutter: stable` on containers whose content can toggle between scrollable and non-scrollable (e.g. a panel that grows past its viewport on some states) — reserves the scrollbar's space up front so its appearance doesn't shift adjacent layout.
+
+```css
+@layer components {
+  .panel-body {
+    scrollbar-gutter: stable;
+  }
+}
+```

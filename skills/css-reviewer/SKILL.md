@@ -33,6 +33,12 @@ Check for:
 ## Modern CSS
 
 Check for:
+- Fixed-width-only layouts (no fluid sizing, no media/container query) that break or overflow between narrow and wide viewports — responsive behavior is a required baseline, not an opt-in; flag its absence even if the task/PR never mentions responsiveness
+- Replaced elements (img/video/iframe) without `max-inline-size: 100%` or fixed `block-size` instead of `aspect-ratio` — likely to overflow or distort at other sizes
+- Nested grids with track definitions duplicated from a parent grid → `subgrid` finding
+- Bare `vh` on mobile-affected full/bounded-viewport heights with no `dvh` counterpart — flag even if the diff/task doesn't mention mobile
+- Elements anchored to a physical viewport edge (fixed header/bottom bar, edge FAB, fullscreen modal/sheet) missing `env(safe-area-inset-*)` padding
+- `env(safe-area-inset-*)` wrapped in `@supports` with a separate base rule instead of using the function's own fallback argument
 - Media queries where the behavior depends on component space → container query finding
 - Physical properties where logical properties apply
 - Repetitive selectors that nesting, `:is()`, or `:where()` would collapse
@@ -55,7 +61,9 @@ Check for:
 - Expensive selectors (universal descendants, chains > 3 compounds, unanchored `:has()`)
 - Layout-property animations and `transition: all`
 - Excessive animation surface (many simultaneous animated elements, `will-change` as default)
+- `transform`/`filter`/`will-change: transform` on an element with `position: fixed` descendants — the new containing block silently breaks the descendant's viewport-relative positioning
 - Missing `contain` / `content-visibility` on large independent regions
+- Missing `scrollbar-gutter: stable` on containers that toggle between scrollable and non-scrollable, causing layout shift
 - Style recalculation triggers (deep inheritance of frequently-changed custom properties)
 
 # Severity Model

@@ -17,10 +17,11 @@ This skill is a rule system, not a tutorial. Apply every rule below to all gener
 4. Semantic tokens over literal values.
 5. Components over global selectors.
 6. Accessibility is mandatory.
-7. Performance is part of correctness.
-8. Progressive enhancement by default.
-9. The cascade is a feature.
-10. Simple CSS over clever CSS.
+7. Responsive layout is mandatory, not opt-in.
+8. Performance is part of correctness.
+9. Progressive enhancement by default.
+10. The cascade is a feature.
+11. Simple CSS over clever CSS.
 
 # Browser Compatibility Policy
 
@@ -37,7 +38,7 @@ Reason from capabilities, never from browser names or versions. The capability m
 
 Stability levels:
 
-- **Stable** — generate normally (Grid, Flexbox, `clamp()`, Cascade Layers, Nesting, Container Queries, `:has()`, `:is()`, `:where()`, `light-dark()`, `color-mix()`, OKLCH, `@property`, logical properties, `@starting-style`, `@scope`).
+- **Stable** — generate normally (Grid, Subgrid, Flexbox, `clamp()`, Cascade Layers, Nesting, Container Queries, `:has()`, `:is()`, `:where()`, `light-dark()`, `color-mix()`, OKLCH, `@property`, logical properties, `@starting-style`, `@scope`, `aspect-ratio`, `scrollbar-gutter`).
 - **Emerging** — generate only when the capability is confirmed for the profile; always behind progressive enhancement (View Transitions).
 - **Experimental** — never generate unless explicitly requested (Anchor Positioning, Custom CSS Functions `@function`, unshipped specs).
 
@@ -49,9 +50,12 @@ Layout:
 - Neither? → Normal flow. Never add `display: flex` or `display: grid` without a layout need.
 
 Responsive:
+- Required baseline, always, regardless of whether the task mentions it: layouts adapt from narrow to wide viewports/containers — no fixed-width-only layout unless the context is explicitly fixed-size (email, print, fixed widget).
 - Behavior depends on the viewport (page structure, navigation)? → Media query.
 - Behavior depends on the component's own available space? → Container query.
 - Fluid scaling of one value? → `clamp()` with viewport or container units. No query.
+- Element's height spans/is bounded by the viewport on a mobile-affected layout? → Required: `dvh`, not bare `vh` (see Viewport Units).
+- Element is anchored to a physical viewport edge (fixed header/bottom bar, edge FAB, fullscreen modal/sheet)? → Required: `env(safe-area-inset-*)` padding, always, regardless of whether the task mentions notches/mobile (see Safe Area Insets).
 
 Spacing / sizing:
 - Matching design token exists? → Required: use the token.
@@ -81,6 +85,8 @@ Scoping:
   Never generate unlayered CSS unless explicitly requested.
 - Required: tokens (custom properties in the `tokens` layer) for color, spacing, typography scale, radius, shadow, and z-index. Never hardcode these values in components.
 - Required: logical properties (`margin-inline`, `padding-block`, `inline-size`, `block-size`, `inset-inline`) instead of physical ones (`margin-left`, `width`, `top`). Exception: physical viewport effects that must not flip with writing mode.
+- Required: layouts are responsive by default (see [rules-layout.md](../shared/references/rules-layout.md) Responsive Layout Baseline) — fluid sizing, and media/container queries where the resize reason demands them, unless the task is explicitly scoped to a fixed-size context.
+- Required: mobile viewport correctness on every viewport-spanning or edge-anchored element — `dvh` (not bare `vh`) for mobile-affected heights, and `env(safe-area-inset-*)` padding for anything anchored to a physical viewport edge (see [rules-layout.md](../shared/references/rules-layout.md) Viewport Units and Safe Area Insets). Apply regardless of whether the task mentions mobile explicitly.
 - Required: native CSS nesting, maximum depth 3. Never use Sass-style `&-suffix` string concatenation — it is invalid native CSS.
 - Required: selector specificity ≤ (0,2,0) inside components. Use `:where()` to zero out specificity in shared/base selectors.
 - Required: `@supports` only when the profile demands progressive enhancement for that feature. Never wrap Stable features for `modern`/`evergreen` profiles.
@@ -114,7 +120,12 @@ Architecture:
 - [ ] Specificity ≤ (0,2,0); no ID selectors; no `!important`
 
 Modern CSS:
-- [ ] Container queries used for component-driven responsiveness
+- [ ] Layout adapts from narrow to wide viewport/container (no fixed-width-only layout) unless explicitly scoped to a fixed-size context
+- [ ] Replaced elements (img/video/iframe) capped with `max-inline-size: 100%`; `aspect-ratio`/`object-fit` used instead of fixed `block-size`
+- [ ] Nested grids aligning to a parent's tracks use `subgrid`, not duplicated track definitions
+- [ ] Mobile-affected viewport heights use `dvh`, not bare `vh`
+- [ ] Elements anchored to a physical viewport edge use `env(safe-area-inset-*)` (inline fallback, no `@supports` wrapper)
+- [ ] Container queries used for component-driven responsiveness; media queries used only for viewport-driven responsiveness
 - [ ] Logical properties used; physical properties justified
 - [ ] Nesting depth ≤ 3; no Sass syntax
 - [ ] `:has()` / `:is()` / `:where()` used where they remove duplication
@@ -131,8 +142,10 @@ Accessibility:
 
 Performance:
 - [ ] Animations limited to `transform` / `opacity`
+- [ ] Elements getting `transform`/`filter`/`will-change: transform` checked for `position: fixed` descendants (new containing block would break them)
 - [ ] No expensive selectors (universal descendant, deep chains, unanchored `:has()`)
 - [ ] `contain` / `content-visibility` applied to independent, off-screen-heavy regions
+- [ ] `scrollbar-gutter: stable` applied where content toggles between scrollable and non-scrollable
 
 Compatibility:
 - [ ] Browser profile resolved and respected

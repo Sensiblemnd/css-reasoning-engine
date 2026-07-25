@@ -1,5 +1,42 @@
 # Layout Rules: Grid, Flexbox, Logical Properties, Container Queries, Units
 
+## Responsive Layout Baseline
+
+Priority: HIGH
+
+Responsive behavior is a default requirement of every layout, not an opt-in feature requested separately. Apply this section whether or not the task mentions "responsive," "mobile," or breakpoints.
+
+- Required: every layout (page-level or component-level) must remain usable and legible from narrow viewports (~320px inline size) through wide viewports/containers, unless the user explicitly scopes the task to a fixed-size context (e.g., an email client, a print stylesheet, a fixed-size widget).
+- Never hardcode a layout container to a fixed pixel `width`/`inline-size` as its only sizing rule. Use fluid tracks (`fr`, `minmax()`, `auto-fit`/`auto-fill`), percentage/`%`-based or `min()`/`max()`-clamped sizing, or an explicit `max-inline-size` paired with fluid inline sizing below it.
+- Required: pick the correct responsive tool for the reason the layout changes — do not default to media queries out of habit:
+  - Viewport-driven change (page structure, nav pattern, `prefers-*`) → media query.
+  - Component's own available space drives the change → container query.
+  - A single value should scale smoothly with no discrete step → `clamp()` — no query needed.
+- Content must reflow (wrap, stack, resize) rather than overflow, clip, or force horizontal scrolling at any viewport/container size in scope.
+- Touch targets and interactive elements must remain usable at narrow inline sizes (no reliance on hover-only affordances for core functionality).
+
+### Responsive Media (img, video, iframe, embed)
+
+- Required: replaced elements get `max-inline-size: 100%; block-size: auto` (or equivalent) so they never force a container wider than its track — the most common source of horizontal overflow on narrow viewports.
+- Required: `aspect-ratio` on images/video/embeds with known intrinsic dimensions, instead of a fixed `block-size`, so the box reserves correct space at every inline size without distorting the content.
+- Prefer `object-fit: cover`/`contain` (with `object-position` as needed) over stretching when a replaced element must fill a fixed-aspect box that doesn't match its intrinsic ratio.
+
+```css
+@layer base {
+  :is(img, video, iframe) {
+    max-inline-size: 100%;
+    block-size: auto;
+  }
+}
+
+@layer components {
+  .card-media {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+}
+```
+
 ## Grid vs Flexbox vs Flow
 
 Priority: HIGH
@@ -26,6 +63,39 @@ Avoid:
 ```css
 .media-object > * + * {
   margin-left: 16px; /* physical property + magic number + fake gap */
+}
+```
+
+## Subgrid
+
+Priority: MEDIUM
+
+- A nested grid's items must align to the parent grid's tracks (shared column/row rhythm across cards, form rows, table-like layouts) → Required: `subgrid`, not a redefinition of matching track sizes on the child.
+- Never duplicate a parent's `grid-template-columns`/`rows` values on a descendant grid to fake alignment — track sizes drift the moment either grid changes. `subgrid` inherits the parent's resolved tracks instead.
+
+Preferred:
+
+```css
+@layer components {
+  .card-list {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .card {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+}
+```
+
+Avoid:
+
+```css
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* duplicated from .card-list; drifts on change */
 }
 ```
 
@@ -102,10 +172,12 @@ Rules:
 
 ## Viewport Units
 
-Priority: MEDIUM
+Priority: HIGH
 
-- Required: `dvh` for full-viewport heights on mobile-affected layouts; never bare `100vh` for full-screen UI.
-- Use `svh` when the layout must never resize as browser chrome collapses; `lvh` for background/decorative sizing where overflow is acceptable.
+- Required: `dvh` for any block-size/height rule that spans (or is bounded by) the viewport on mobile-affected layouts — app shells, full-screen modals/sheets, `min-height`/`max-height` clamps. Never bare `100vh` for these; mobile browser chrome (address bar, toolbar) collapsing/expanding changes `vh` but not `dvh`, so `100vh` content gets clipped or leaves a dead gap.
+- Use `svh` when the layout must never resize as browser chrome collapses (avoids a jump/reflow); `lvh` for background/decorative sizing where overflow is acceptable.
+- `dvw`/`svw`/`lvw` exist but rarely matter in practice — the dynamic-viewport problem is a *height* problem (collapsing browser chrome), not a width problem. Do not reach for `dvw` by default; plain `vw`/`%` is fine for widths unless a specific horizontal chrome element (e.g. a resizable side panel) is identified.
+- Required: pair every mobile-affected `100vh`/`50vh`/etc. with its `dvh` counterpart. If the profile requires a fallback (`enterprise`/`legacy`, capability `false`), keep `vh` as the pre-enhancement value and upgrade inside `@supports (height: 100dvh)`; for `modern`/`evergreen` (`dvh` capability `true`), emit `dvh` directly with no `vh` fallback and no `@supports` wrapper.
 
 Preferred:
 
@@ -120,6 +192,26 @@ Avoid:
 ```css
 .app-shell {
   height: 100vh; /* clipped under mobile browser chrome */
+}
+```
+
+## Safe Area Insets
+
+Priority: HIGH
+
+Mobile viewports can be obscured by device notches, camera cutouts, rounded corners, and the home-indicator bar. Apply this section to any element that touches or is anchored to a physical viewport edge — fixed/sticky headers and bottom bars, edge-anchored FABs, fullscreen modals/sheets/drawers — regardless of whether the task mentions "mobile" or "notch" explicitly.
+
+- Required: pad the edge-anchored side with `env(safe-area-inset-*)` using the function's own fallback argument — `env(safe-area-inset-bottom, 0px)` — rather than wrapping it in `@supports`. The fallback argument is always valid CSS and resolves to `0px` on engines/devices without the constant, so the `@supports` query adds nothing.
+- Required: combine with `max()` when a minimum edge padding must exist even where there's no inset (e.g. desktop, non-notched devices): `padding-block-end: max(env(safe-area-inset-bottom), 1rem);`
+- Never mix the two fallback strategies (a `@supports`-guarded base rule vs. an inline `env(x, fallback)`) for the same property inside one component — pick the inline-fallback form; it's simpler and covers the same cases.
+- Note (outside CSS): `env()` safe-area values only resolve to non-zero on iOS Safari when the page's `<meta name="viewport">` includes `viewport-fit=cover`. Flag this as a dependency if reviewing/generating for a project targeting iOS, since CSS alone can't fix a missing viewport meta tag.
+
+```css
+@layer components {
+  .bottom-nav {
+    padding-block-end: max(env(safe-area-inset-bottom, 0px), 1rem);
+    padding-inline: max(env(safe-area-inset-left, 0px), 1rem) max(env(safe-area-inset-right, 0px), 1rem);
+  }
 }
 ```
 

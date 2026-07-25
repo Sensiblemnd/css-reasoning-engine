@@ -11,9 +11,15 @@
   <div class="shell">
     <header class="site-header">
       <span class="wordmark">cascade<span class="wordmark-suffix">.reasoning</span></span>
-      <nav class="top-nav" aria-label="External links">
-        <a class="top-nav-link" href="https://github.com/Sensiblemnd/css-reasoning-engine">GitHub ↗</a>
-      </nav>
+      <div class="header-actions">
+        <nav class="top-nav" aria-label="External links">
+          <a class="top-nav-link" href="https://github.com/Sensiblemnd/css-reasoning-engine">GitHub ↗</a>
+        </nav>
+        <input type="checkbox" id="nav-toggle" class="nav-toggle-input visually-hidden" />
+        <label for="nav-toggle" class="nav-toggle" aria-label="Toggle navigation menu">
+          <span class="nav-toggle-icon"></span>
+        </label>
+      </div>
     </header>
 
     <nav class="side-nav" aria-label="Sections">
@@ -132,37 +138,39 @@
           <p class="section-heading-lede">Every task resolves a profile before generating CSS: explicit instruction → project config → default <code>evergreen</code>.</p>
           <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/browser-profiles.md">View browser-profiles.md ↗</a>
         </div>
-        <table class="profile-table">
-          <thead>
-            <tr>
-              <th scope="col">Profile</th>
-              <th scope="col">Fallbacks</th>
-              <th scope="col">Behavior</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>modern</td>
-              <td>none</td>
-              <td>Latest engines; ship all Stable features directly, no @supports.</td>
-            </tr>
-            <tr>
-              <td>evergreen</td>
-              <td>minimal</td>
-              <td>Auto-updating browsers; @supports reserved for Emerging features.</td>
-            </tr>
-            <tr>
-              <td>enterprise</td>
-              <td>progressive</td>
-              <td>Slow-updating fleets; working baseline first, then enhance.</td>
-            </tr>
-            <tr>
-              <td>legacy</td>
-              <td>extensive</td>
-              <td>Every non-universal feature needs a working fallback.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="profile-table">
+            <thead>
+              <tr>
+                <th scope="col">Profile</th>
+                <th scope="col">Fallbacks</th>
+                <th scope="col">Behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>modern</td>
+                <td>none</td>
+                <td>Latest engines; ship all Stable features directly, no @supports.</td>
+              </tr>
+              <tr>
+                <td>evergreen</td>
+                <td>minimal</td>
+                <td>Auto-updating browsers; @supports reserved for Emerging features.</td>
+              </tr>
+              <tr>
+                <td>enterprise</td>
+                <td>progressive</td>
+                <td>Slow-updating fleets; working baseline first, then enhance.</td>
+              </tr>
+              <tr>
+                <td>legacy</td>
+                <td>extensive</td>
+                <td>Every non-universal feature needs a working fallback.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section id="install" class="panel">

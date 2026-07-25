@@ -35,6 +35,8 @@ capabilities:                 # modern  evergreen  enterprise  legacy
   cascade_layers:             #  true     true       true       false
   nesting:                    #  true     true       true       false
   container_queries:          #  true     true       true       false
+  subgrid:                    #  true     true       false      false
+  scrollbar_gutter:           #  true     true       false      false
   has_selector:               #  true     true       true       false
   is_where_selectors:         #  true     true       true       true
   logical_properties:         #  true     true       true       true
@@ -63,7 +65,7 @@ Rules:
 
 | Level | Behavior | Features |
 | ----- | -------- | -------- |
-| Stable | Generate normally | Cascade Layers, Grid, Flexbox, Nesting, Container Queries, `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `light-dark()`, `color-mix()`, OKLCH, `@property`, `@starting-style`, `@scope`, `text-wrap`, `dvh`/`svh`/`lvh` |
+| Stable | Generate normally | Cascade Layers, Grid, Subgrid, Flexbox, Nesting, Container Queries, `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `light-dark()`, `color-mix()`, OKLCH, `@property`, `@starting-style`, `@scope`, `text-wrap`, `dvh`/`svh`/`lvh`, `aspect-ratio`, `scrollbar-gutter` |
 | Emerging | Only when capability confirmed; always progressive enhancement | View Transitions |
 | Experimental | Never unless explicitly requested | Anchor Positioning, Custom CSS Functions (`@function`), unshipped specs |
 

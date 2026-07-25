@@ -72,6 +72,26 @@ Apply per category; topic rules live in the routed reference file.
 - Add missing `prefers-reduced-motion` guards (behavior-preserving for `no-preference` users).
 - Layout-property animations → `transform` equivalents only when rendering matches; otherwise report as follow-up.
 
+## Fixed-width layouts → flagged, not silently changed ([rules-layout.md](../shared/references/rules-layout.md))
+
+- Responsive behavior is a required baseline (see Responsive Layout Baseline). A layout that is fixed-width-only and doesn't reflow is a rendering bug, not a style choice — but converting it to fluid sizing changes computed layout at viewport/container sizes where it previously didn't adapt, which conflicts with Prime Directive 1 (preserve rendering exactly).
+- Required: report missing responsive behavior as a `follow-up` in the change list; do not silently convert fixed widths to fluid sizing unless the user explicitly requests responsive fixes in this pass. This includes: replaced elements missing `max-inline-size: 100%`/`aspect-ratio`, and missing `scrollbar-gutter: stable` on toggling-scroll containers — each reserves/changes space that wasn't reserved/changed before.
+- Exception: a fixed-width value that is purely a magic number with an equivalent fluid expression at the *same* rendered size (e.g., `width: 320px` → `max-inline-size: 320px` with no other behavior change) can be normalized directly — that's a literal-to-logical-property transform, not a responsiveness fix.
+
+## Safe-area `@supports` guard → inline `env()` fallback ([rules-layout.md](../shared/references/rules-layout.md))
+
+- A `@supports (padding: env(safe-area-inset-*))` block plus a separate pre-`@supports` base rule for the same property → collapse to one declaration using the function's own fallback argument (`env(safe-area-inset-bottom, 0px)`). Risk: `none` — the fallback argument resolves identically to the old base rule on unsupported engines, and identically to the `@supports`-enhanced rule on supported ones.
+- Missing `dvh`/missing `env(safe-area-inset-*)` on a mobile-affected or edge-anchored element is a correctness bug like the fixed-width-layout case above, not a style choice — report as `follow-up`, don't add it silently (it changes rendering on collapsing mobile chrome / notched devices where it previously didn't adapt).
+
+## Duplicated grid tracks → Subgrid ([rules-layout.md](../shared/references/rules-layout.md))
+
+- A nested grid's explicit `grid-template-columns`/`rows` values are copy-pasted from the ancestor grid it aligns to → replace with `grid-template-columns: subgrid` (or `rows`) and the appropriate `grid-column`/`grid-row` span. Risk: `none` — only apply when the duplicated values are proven identical to the parent's resolved tracks, since that's the condition under which rendering is unchanged.
+- If the child's tracks only *look* similar but diverge (different sizing intent), do not convert — report as a `follow-up` note instead.
+
+## Containing-block conflicts surfaced during refactor ([rules-a11y-performance.md](../shared/references/rules-a11y-performance.md))
+
+- If any transformation in this pass adds or already finds `transform`/`filter`/`will-change: transform` on an element with a `position: fixed` descendant, that is a latent bug (the descendant silently repositions relative to the new containing block), not something to fix inline. Required: report as `follow-up`, do not restructure the DOM or move the fixed element as part of an unrelated refactor pass.
+
 ## Duplication → Composition
 
 - Identical declaration blocks → one rule with an `:is()` selector list, a utility class, or a shared token.
@@ -90,5 +110,9 @@ Never mix an unrequested behavior change into refactor output.
 - [ ] Every cascade conflict resolves to the same winner (layers, specificity, order)
 - [ ] Token values equal the literals they replaced
 - [ ] No feature exceeds the resolved browser profile
+- [ ] Missing responsive behavior (fixed-width-only layouts, unsized replaced elements, missing scrollbar-gutter) reported as follow-up, not silently changed
+- [ ] Duplicated grid tracks converted to `subgrid` only where values are proven identical to the parent
+- [ ] Safe-area `@supports`-guard + base-rule pairs collapsed to inline `env(x, fallback)`; missing `dvh`/safe-area coverage reported as follow-up, not silently added
+- [ ] Any `transform`/`filter`/`will-change` + `position: fixed` descendant conflict reported as follow-up, not restructured inline
 - [ ] Prohibited patterns eliminated or reported as follow-ups
 - [ ] Change list covers every edit, each with a risk rating

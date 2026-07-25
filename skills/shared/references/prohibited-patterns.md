@@ -27,6 +27,8 @@ Never generate, accept, or leave in place:
 - `user-scalable=no` or any zoom-blocking technique.
 - Meaning encoded by color alone.
 - Media queries that duplicate what a container query or `clamp()` already solves.
+- `@supports`-guarded base rule + enhancement for `env(safe-area-inset-*)` when the function's own fallback argument (`env(safe-area-inset-bottom, 0px)`) already covers the unsupported case.
+- Fixed-width-only layout containers (e.g., `width: 960px` as the sole sizing rule) that don't reflow across viewport/container sizes — unless the context is explicitly fixed-size (email, print, fixed widget).
 - Vendor prefixes for Stable features.
 - Animating layout properties (`width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`).
 - Unnecessary wrapper elements introduced only to enable styling.
