@@ -60,3 +60,5 @@ cat skills/css-engineer/SKILL.md skills/shared/references/*.md > css-rules.md
 ## Configuring browser support
 
 Every skill resolves a browser profile per project before acting: explicit instruction → `browserslist` config → default `evergreen`. Profiles (`modern`, `evergreen`, `enterprise`, `legacy`) and per-feature capabilities are defined in [browser-profiles.md](skills/shared/references/browser-profiles.md) and can be overridden per project.
+
+
