@@ -24,6 +24,7 @@ skills/
 │       ├── rules-layout.md
 │       ├── rules-color-typography.md
 │       ├── rules-a11y-performance.md
+│       ├── rules-forms.md
 │       └── rules-advanced.md
 ├── css-engineer/SKILL.md
 ├── css-reviewer/SKILL.md
@@ -61,4 +62,7 @@ cat skills/css-engineer/SKILL.md skills/shared/references/*.md > css-rules.md
 
 Every skill resolves a browser profile per project before acting: explicit instruction → `browserslist` config → default `evergreen`. Profiles (`modern`, `evergreen`, `enterprise`, `legacy`) and per-feature capabilities are defined in [browser-profiles.md](skills/shared/references/browser-profiles.md) and can be overridden per project.
 
+## License
+
+[MIT](LICENSE)
 

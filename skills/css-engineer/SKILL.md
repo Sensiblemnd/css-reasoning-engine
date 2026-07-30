@@ -1,8 +1,9 @@
 ---
 name: css-engineer
 description: Deterministic rules for writing and generating modern native CSS. Use whenever creating stylesheets, styling components or pages, implementing designs, or making layout, color, typography, animation, or responsive-design decisions. Enforces cascade layers, design tokens, logical properties, container queries, accessibility, and performance rules with configurable browser-compatibility profiles. For auditing existing CSS use css-reviewer; for modernizing existing CSS use css-refactor.
-version: 2.1.0
-priority: high
+metadata:
+  version: 2.1.0
+  priority: high
 ---
 
 # CSS Engineer
@@ -38,7 +39,7 @@ Reason from capabilities, never from browser names or versions. The capability m
 
 Stability levels:
 
-- **Stable** — generate normally (Grid, Subgrid, Flexbox, `clamp()`, Cascade Layers, Nesting, Container Queries, `:has()`, `:is()`, `:where()`, `light-dark()`, `color-mix()`, OKLCH, `@property`, logical properties, `@starting-style`, `@scope`, `aspect-ratio`, `scrollbar-gutter`).
+- **Stable** — generate normally (Grid, Subgrid, Flexbox, `clamp()`, Cascade Layers, Nesting, Container Queries, `:has()`, `:is()`, `:where()`, `light-dark()`, `color-mix()`, OKLCH, `@property`, logical properties, `@starting-style`, `@scope`, `aspect-ratio`, `scrollbar-gutter`, scroll-driven animations, `:user-valid`/`:user-invalid`, `accent-color`).
 - **Emerging** — generate only when the capability is confirmed for the profile; always behind progressive enhancement (View Transitions).
 - **Experimental** — never generate unless explicitly requested (Anchor Positioning, Custom CSS Functions `@function`, unshipped specs).
 
@@ -74,6 +75,13 @@ Scoping:
 - Donut scope needed (root-to-boundary styling nesting cannot express)? → `@scope` when the profile capability is `true`.
 - Otherwise? → Single component class + nesting (max depth 3).
 
+Forms:
+- Field fails constraint validation? → `:user-invalid` styling paired with the field's existing ARIA error wiring, never a JS-only error class (see [rules-forms.md](../shared/references/rules-forms.md)).
+- Native control (checkbox, radio, range) needs brand color? → `accent-color`, never a hidden-input/wrapper hack.
+
+Print:
+- Context is explicitly print/email/fixed-size? → apply the Print baseline ([rules-layout.md](../shared/references/rules-layout.md)) instead of the responsive baseline above.
+
 # Rules
 
 ## Universal (apply to every task)
@@ -101,10 +109,11 @@ Load the reference file when the task touches its topic:
 | Prohibited patterns (Required: load for every task) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
 | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
 | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-| Grid, Flexbox, logical properties, container queries/units, viewport units | [rules-layout.md](../shared/references/rules-layout.md) |
+| Grid, Flexbox, logical properties, container queries/units, viewport units, print | [rules-layout.md](../shared/references/rules-layout.md) |
 | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
 | Focus, motion, contrast, forced colors, zoom, `contain`, `content-visibility`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
-| `@property`, `@starting-style`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
+| Validation states, native control color, labels/placeholder | [rules-forms.md](../shared/references/rules-forms.md) |
+| `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
 
 # Prohibited Patterns
 
@@ -139,6 +148,7 @@ Accessibility:
 - [ ] `:focus-visible` styles present; no removed focus indicators
 - [ ] Animations guarded by `prefers-reduced-motion`
 - [ ] Contrast meets WCAG AA; `forced-colors` not broken; zoom not blocked
+- [ ] Form validation feedback uses `:user-valid`/`:user-invalid` (or profile fallback) paired with ARIA wiring, not JS-toggled classes; native controls use `accent-color` instead of rebuilt `appearance: none` markup
 
 Performance:
 - [ ] Animations limited to `transform` / `opacity`
@@ -151,6 +161,7 @@ Compatibility:
 - [ ] Browser profile resolved and respected
 - [ ] `@supports` only where the profile requires it
 - [ ] Emerging features degrade gracefully
+- [ ] Fixed-size/print context (if applicable) has `@media print` rules: hidden non-printable chrome, `break-inside: avoid`, ink-safe color
 
 Output:
 - [ ] Zero prohibited patterns

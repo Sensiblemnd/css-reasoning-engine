@@ -12,6 +12,7 @@ Responsive behavior is a default requirement of every layout, not an opt-in feat
   - Viewport-driven change (page structure, nav pattern, `prefers-*`) → media query.
   - Component's own available space drives the change → container query.
   - A single value should scale smoothly with no discrete step → `clamp()` — no query needed.
+- Required: write media and container queries with range comparison syntax (`@media (width < 60rem)`, `@container (inline-size > 30rem)`), not the `min-width`/`max-width` prefixed form — Baseline since 2023, no fallback needed for `modern`/`evergreen`/`enterprise`. Exception: `legacy` profile — an unsupported engine fails to parse the whole query rather than degrading, so use the prefixed `min-width`/`max-width` form there instead.
 - Content must reflow (wrap, stack, resize) rather than overflow, clip, or force horizontal scrolling at any viewport/container size in scope.
 - Touch targets and interactive elements must remain usable at narrow inline sizes (no reliance on hover-only affordances for core functionality).
 
@@ -211,6 +212,33 @@ Mobile viewports can be obscured by device notches, camera cutouts, rounded corn
   .bottom-nav {
     padding-block-end: max(env(safe-area-inset-bottom, 0px), 1rem);
     padding-inline: max(env(safe-area-inset-left, 0px), 1rem) max(env(safe-area-inset-right, 0px), 1rem);
+  }
+}
+```
+
+## Print
+
+Priority: LOW
+
+Print is one of the explicit fixed-size contexts exempted from the Responsive Layout Baseline above — exempted from fluid sizing, not from having any rules at all.
+
+- Required: `@media print` rules for anything that shouldn't appear on paper — navigation, buttons, video/audio embeds, decorative backgrounds. Hide with `display: none`, not `visibility: hidden` (the latter still reserves the page space).
+- Prefer `break-inside: avoid` on cards, table rows, and figures so a printed page doesn't split one unit across two sheets; `break-before: page` for sections that should always start a fresh page.
+- Required: `print-color-adjust: exact` (`color-adjust: exact` for older engines) on elements whose background or color IS the content (charts, swatches, status badges) — browsers strip backgrounds by default to save ink, which silently breaks color-coded meaning.
+- Never assume dark-mode tokens apply on paper — resolve `light-dark()` tokens to their light value inside `@media print` regardless of the user's `prefers-color-scheme`; printed output has no "dark mode."
+
+```css
+@media print {
+  :is(.site-header, .side-nav, .cta-row, [data-print-hide]) {
+    display: none;
+  }
+
+  .status-badge {
+    print-color-adjust: exact;
+  }
+
+  :root {
+    color-scheme: light;
   }
 }
 ```

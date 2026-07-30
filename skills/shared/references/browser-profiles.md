@@ -48,6 +48,9 @@ capabilities:                 # modern  evergreen  enterprise  legacy
   property_registration:      #  true     true       true       false
   starting_style:             #  true     true       false      false
   scope:                      #  true     true       false      false
+  scroll_driven_animations:   #  true     true       false      false
+  user_valid_invalid:         #  true     true       true       false
+  accent_color:               #  true     true       true       false
   view_transitions:           #  optional optional   false      false
   anchor_positioning:         #  experimental — never without explicit request
   custom_functions:           #  experimental — never without explicit request
@@ -65,7 +68,7 @@ Rules:
 
 | Level | Behavior | Features |
 | ----- | -------- | -------- |
-| Stable | Generate normally | Cascade Layers, Grid, Subgrid, Flexbox, Nesting, Container Queries, `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `light-dark()`, `color-mix()`, OKLCH, `@property`, `@starting-style`, `@scope`, `text-wrap`, `dvh`/`svh`/`lvh`, `aspect-ratio`, `scrollbar-gutter` |
+| Stable | Generate normally | Cascade Layers, Grid, Subgrid, Flexbox, Nesting, Container Queries, `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `light-dark()`, `color-mix()`, OKLCH, `@property`, `@starting-style`, `@scope`, `text-wrap`, `dvh`/`svh`/`lvh`, `aspect-ratio`, `scrollbar-gutter`, scroll-driven animations (`animation-timeline`), `:user-valid`/`:user-invalid`, `accent-color` |
 | Emerging | Only when capability confirmed; always progressive enhancement | View Transitions |
 | Experimental | Never unless explicitly requested | Anchor Positioning, Custom CSS Functions (`@function`), unshipped specs |
 
@@ -81,14 +84,14 @@ Preferred (profile `enterprise`, capability `false` needs a working baseline):
 
 ```css
 @layer components {
-  .gallery {
-    display: block; /* functional baseline for the resolved profile */
+  .card {
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* functional baseline: repeats the parent's tracks by value */
   }
 
-  @supports (grid-template-rows: masonry) {
-    .gallery {
-      display: grid;
-      grid-template-rows: masonry;
+  @supports (grid-template-columns: subgrid) {
+    .card {
+      grid-template-columns: subgrid; /* enhancement: inherits the parent's tracks exactly, no drift */
     }
   }
 }

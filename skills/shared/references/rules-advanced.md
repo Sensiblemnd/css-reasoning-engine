@@ -1,4 +1,4 @@
-# Advanced Rules: @property, @starting-style, View Transitions, Anchor Positioning, Custom Functions
+# Advanced Rules: @property, @starting-style, Scroll-Driven Animations, View Transitions, Anchor Positioning, Custom Functions
 
 ## @property — Stability: Stable
 
@@ -52,6 +52,39 @@ Priority: MEDIUM
 ```
 
 - Required: pair with `transition-behavior: allow-discrete` when transitioning `display` or `overlay`.
+
+## Scroll-Driven Animations — Stability: Stable
+
+Priority: MEDIUM
+
+- Required: drive scroll-linked effects (progress indicators, reveal-on-scroll, parallax) with `animation-timeline: scroll()` / `view()`, not a JS scroll listener recalculating styles every frame.
+- Required: `prefers-reduced-motion` guard, same as any other animation — a scroll-driven animation is still an animation.
+- Required: `animation-range` to bound where the animation starts/ends within the scroller or the element's view, instead of approximating the range with JS-measured offsets.
+
+```css
+@media (prefers-reduced-motion: no-preference) {
+  @layer components {
+    .reveal {
+      animation: fade-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        translate: 0 2rem;
+      }
+      to {
+        opacity: 1;
+        translate: 0 0;
+      }
+    }
+  }
+}
+```
+
+- Fallback (profile capability `false`, e.g. `enterprise`/`legacy`): omit `animation-timeline` inside `@supports (animation-timeline: view())` so the element simply renders in its `to` state — don't ship a JS scrollytelling library as the baseline for a progressive enhancement.
 
 ## View Transitions — Stability: Emerging
 

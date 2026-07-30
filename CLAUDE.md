@@ -10,6 +10,8 @@ A collection of Claude Agent Skills that give AI coding assistants CSS engineeri
 
 Use the plain Read/Edit/Write tools for file changes in this repo, not shell one-liners (`sed`, `perl -pi`, `awk`, etc.) — even for simple find/replace across a file. Prefer `Edit` with `replace_all: true` over a scripted substitution.
 
+Never run git commands (`add`, `commit`, `push`, etc.) in this repo unless the user explicitly asks for that specific command. Draft commit messages when asked, but leave staging and committing to the user unless told otherwise.
+
 ## Repository structure
 
 ```
@@ -21,7 +23,8 @@ skills/
 │   ├── rules-layout.md          # Grid/Flexbox, logical properties, container queries, viewport units
 │   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), clamp(), text-wrap
 │   ├── rules-a11y-performance.md # focus, motion, contrast, forced-colors, containment, animation cost
-│   └── rules-advanced.md        # @property, @starting-style, View Transitions, Anchor Positioning
+│   ├── rules-forms.md           # validation states, native control color, labels/placeholder
+│   └── rules-advanced.md        # @property, @starting-style, scroll-driven animations, View Transitions, Anchor Positioning
 ├── css-engineer/SKILL.md  # role: generate new CSS
 ├── css-reviewer/SKILL.md  # role: audit existing CSS, report structured findings, never rewrite
 └── css-refactor/SKILL.md  # role: modernize CSS without changing rendering

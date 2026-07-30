@@ -1,8 +1,9 @@
 ---
 name: css-refactor
 description: Deterministic rules for modernizing existing CSS without changing visual behavior. Use whenever refactoring stylesheets, migrating Sass/Less to native CSS, converting hardcoded values to design tokens, adopting cascade layers or logical properties in legacy code, or cleaning up CSS. Preserves rendering and browser compatibility while reducing complexity. For writing new CSS use css-engineer; for audit-only findings use css-reviewer.
-version: 2.1.0
-priority: high
+metadata:
+  version: 2.1.0
+  priority: high
 ---
 
 # CSS Refactor
@@ -50,6 +51,10 @@ Apply per category; topic rules live in the routed reference file.
 - A property stepped across ≥ 2 breakpoints → one `clamp()` whose endpoints match the original smallest/largest values.
 - Media queries reacting to component space → container queries only when a container ancestor exists or can be added without layout change (`container-type: inline-size` can affect sizing — verify).
 
+## `min-width`/`max-width` → Range comparison syntax ([rules-layout.md](../shared/references/rules-layout.md))
+
+- `@media (min-width: 768px)` / `@container (max-inline-size: 30rem)` → `@media (width >= 768px)` / `@container (inline-size <= 30rem)`. Risk: `none` for `modern`/`evergreen`/`enterprise` profiles — Baseline since 2023, identical matching behavior. Skip for `legacy` — an unsupported engine fails to parse the query at all rather than degrading.
+
 ## Sass/Less → Native CSS ([rules-architecture.md](../shared/references/rules-architecture.md))
 
 - `$var` → custom property token; `@mixin`/`@extend` → utility class, `:is()` group, or shared component rule.
@@ -92,6 +97,12 @@ Apply per category; topic rules live in the routed reference file.
 
 - If any transformation in this pass adds or already finds `transform`/`filter`/`will-change: transform` on an element with a `position: fixed` descendant, that is a latent bug (the descendant silently repositions relative to the new containing block), not something to fix inline. Required: report as `follow-up`, do not restructure the DOM or move the fixed element as part of an unrelated refactor pass.
 
+## Non-native validation UI → Native validation states ([rules-forms.md](../shared/references/rules-forms.md))
+
+- JS-toggled error classes on form fields → `:user-invalid`/`:user-valid` (or `:invalid`/`:valid` gated with `:not(:placeholder-shown)` when the profile capability is `false`).
+- Risk: `low` — behavior-preserving only when the existing JS validation triggers on the same timing the pseudo-class covers (after interaction/on submit attempt). If the JS validation fires on custom logic beyond native constraint validation, report as a follow-up instead of converting.
+- Never remove existing `aria-invalid`/`aria-describedby` wiring during the conversion; CSS-only pseudo-classes don't announce anything to assistive technology on their own.
+
 ## Duplication → Composition
 
 - Identical declaration blocks → one rule with an `:is()` selector list, a utility class, or a shared token.
@@ -114,5 +125,6 @@ Never mix an unrequested behavior change into refactor output.
 - [ ] Duplicated grid tracks converted to `subgrid` only where values are proven identical to the parent
 - [ ] Safe-area `@supports`-guard + base-rule pairs collapsed to inline `env(x, fallback)`; missing `dvh`/safe-area coverage reported as follow-up, not silently added
 - [ ] Any `transform`/`filter`/`will-change` + `position: fixed` descendant conflict reported as follow-up, not restructured inline
+- [ ] JS-toggled validation classes converted to `:user-valid`/`:user-invalid` only when trigger timing matches exactly, else reported as follow-up; existing ARIA wiring left intact
 - [ ] Prohibited patterns eliminated or reported as follow-ups
 - [ ] Change list covers every edit, each with a risk rating
