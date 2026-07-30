@@ -58,6 +58,10 @@ The right skill activates automatically: "style a card" → css-engineer, "revie
 cat skills/css-engineer/SKILL.md skills/shared/references/*.md > css-rules.md
 ```
 
+### A note on CLI skill installers (e.g. `npx skills add`)
+
+Tools like [skills.sh](https://skills.sh) install a skill as a single standalone `SKILL.md` file, not the directory it lives in. That breaks these skills: each one resolves its actual rule content through relative links into `../shared/references/`, and a single-file install has no `shared/` to link to. Use the **Claude Code** or **Other agents** instructions above (copy/symlink the whole `skills/` tree, `shared/` included) instead of a single-file CLI installer.
+
 ## Configuring browser support
 
 Every skill resolves a browser profile per project before acting: explicit instruction → `browserslist` config → default `evergreen`. Profiles (`modern`, `evergreen`, `enterprise`, `legacy`) and per-feature capabilities are defined in [browser-profiles.md](skills/shared/references/browser-profiles.md) and can be overridden per project.
