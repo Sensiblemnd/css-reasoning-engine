@@ -9,13 +9,23 @@ Priority: HIGH
 - Required: pair validation styling with the field's existing ARIA wiring (`aria-invalid`, `aria-describedby` pointing at the error text). CSS only changes appearance; it cannot announce the error to assistive technology. Flag missing ARIA wiring in the HTML rather than compensating for it in CSS.
 - Fallback (profile capability `false`, e.g. `legacy`): gate `:invalid` with `:not(:placeholder-shown)` to approximate "touched" state without JavaScript.
 
+Emit one of these, never both — they are alternatives selected by the resolved profile, not a base rule plus an enhancement. On an engine that supports `:user-invalid`, shipping both means the fallback also matches and wins on specificity ((0,3,0) vs (0,2,0)), reintroducing the "wrong before you've touched it" behavior the first rule exists to avoid.
+
+Profiles where `user_valid_invalid` is `true` (`modern`, `evergreen`, `enterprise`):
+
 ```css
 @layer components {
   .field:user-invalid {
     border-color: var(--color-danger);
   }
+}
+```
 
-  /* legacy fallback: :user-invalid unsupported */
+Profiles where it is `false` (`legacy`) — this rule only:
+
+```css
+@layer components {
+  /* approximates "touched" without JS; :user-invalid unsupported here */
   .field:not(:placeholder-shown):invalid {
     border-color: var(--color-danger);
   }

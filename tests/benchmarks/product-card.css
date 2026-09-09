@@ -1,0 +1,135 @@
+/* Benchmark input — see README.md in this directory.
+ *
+ * DO NOT "fix" this file. Every problem in it is deliberate. It is the input to
+ * a skill benchmark, not repo CSS, and it is not linted by ./tests/run.sh.
+ *
+ * Reconstruction of the product-card test case from LogRocket's "Can AI tools
+ * refactor your CSS?" benchmark, rebuilt from the article's description of the
+ * seven planted pitfalls. Trap numbers below match the README table.
+ */
+
+/* ---- generic card ------------------------------------------------------- */
+
+.card {
+  position: relative;
+  width: 320px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+/* TRAP 5 (partial redundancy): .card-description below repeats these two
+ * declarations, but also adds truncation that this rule must not gain. */
+.card p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #616161;
+  margin: 0 0 12px;
+}
+
+/* TRAP 1 (hover cascade conflict): the !important declaration wins even though
+ * it comes first, so the tight shadow is what actually renders. The soft shadow
+ * on the second line is dead code that *looks* like the intended value. */
+.card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ---- media + badge ------------------------------------------------------ */
+
+/* TRAP 2 (stacking context): this z-index and the badge's below are a pair.
+ * Changing either in isolation reorders the badge against the image. */
+.card-image-wrap {
+  position: relative;
+  z-index: 2;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* TRAP 2 + TRAP 3: z-index must stay above .card-image-wrap. The green here is
+ * Material 500; .badge-new below is Material 600 — a deliberate, visible
+ * difference, not a near-duplicate to consolidate. */
+.badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3 !important;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #4caf50;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* TRAP 3: #43a047 is Material Green 600 against .badge's 500. Merging the two
+ * to one token is a rendering change. */
+.card .badge.badge-new {
+  background: #43a047;
+}
+
+/* TRAP 4 (specificity tie): this selector and .card .badge.badge-new above are
+ * both (0,3,0). Source order alone would decide it; the !important is what
+ * actually guarantees the promo colour wins. Remove it and the tie resolves the
+ * other way. */
+.promo-active .card .badge {
+  background: #e53935 !important;
+}
+
+/* ---- description -------------------------------------------------------- */
+
+/* TRAP 5 + TRAP 7: the first two declarations duplicate .card p, but the
+ * -webkit- trio is load-bearing — it is the only interoperable multi-line
+ * truncation, and dropping it silently removes the clamp. */
+.card-description {
+  font-size: 14px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- tags --------------------------------------------------------------- */
+
+/* TRAP 6 (protective scope): `.tag` is a generic name. The `.card` prefix is
+ * what keeps this rule off tags elsewhere in the page. */
+.card .tag {
+  display: inline-block;
+  padding: 2px 6px;
+  margin-right: 4px;
+  border-radius: 3px;
+  background: #eeeeee;
+  font-size: 11px;
+  color: #424242;
+}
+
+/* ---- footer button ------------------------------------------------------ */
+
+/* TRAP 6 (protective scope): same reasoning, one level deeper. `.btn-primary`
+ * is the most collision-prone name in the file. */
+.card .card-footer .btn-primary {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #1976d2;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* TRAP 6: the opacity here is easy to drop when flattening the selector. */
+.card .card-footer .btn-primary:hover {
+  background: #1565c0;
+  opacity: 0.95;
+}

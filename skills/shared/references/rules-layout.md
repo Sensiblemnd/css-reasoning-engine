@@ -164,7 +164,7 @@ Rules:
 
 - Required: name containers (`container-name`) when more than one ancestor container can exist.
 - Never make an element query its own size — the container must be an ancestor.
-- Prefer logical container units (`cqi`, `cqb`, `cqmin`) over their physical equivalents (`cqw`, `cqh`) for values that scale with the container — same reasoning as the Logical Properties table below. `cqw`/`cqh`/`cqmax` exist and are valid, but reach for them only for the same physical-anchoring exception (a value that must not flip with writing mode):
+- Prefer logical container units (`cqi`, `cqb`, `cqmin`) over their physical equivalents (`cqw`, `cqh`) for values that scale with the container — same reasoning as the Logical Properties table above. `cqw`/`cqh`/`cqmax` exist and are valid, but reach for them only for the same physical-anchoring exception (a value that must not flip with writing mode):
 
 ```css
 .card-title {
@@ -174,22 +174,23 @@ Rules:
 
 ### Container Style Queries — Stability: Emerging
 
-Priority: MEDIUM — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+Priority: MEDIUM — direct on `modern`; unguarded progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
 
 `@container style(--variant: featured)` queries a container's own custom-property value rather than its size — use it when a component has a token-driven variant (a `--variant` or `--density` custom property set by the page) that should change several descendant declarations at once. It is not a replacement for a modifier class where a class reads better: a one-off visual difference (`.card--featured`) stays a class; a variant that composes with container size queries, or that a parent sets without the component's own markup knowing about it, is what style queries are for.
 
-```css
-@supports (container-type: inline-size) and style(--variant: featured) {
-  @layer components {
-    .card {
-      container-type: inline-size;
-      container-name: card;
-    }
+Never wrap a style query in `@supports`. There is no valid `@supports` test for it — `@supports` accepts a declaration test, `selector()`, `font-tech()`, or `font-format()` and nothing else, so `@supports style(...)` is an unrecognized condition that evaluates false and drops the block in *every* engine, including ones where style queries work. Required instead: an unsupported engine simply ignores the `@container style()` block, so the un-queried state must be a usable default on its own. That is the progressive-enhancement contract for this feature on `evergreen` — carried by the base rule, not by a guard.
 
-    @container card style(--variant: featured) {
-      .card-title {
-        font-size: var(--text-xl);
-      }
+```css
+@layer components {
+  .card {
+    container-type: inline-size;
+    container-name: card;
+    /* base state must stand alone — engines without style queries stop here */
+  }
+
+  @container card style(--variant: featured) {
+    .card-title {
+      font-size: var(--text-xl);
     }
   }
 }
@@ -229,13 +230,18 @@ Mobile viewports can be obscured by device notches, camera cutouts, rounded corn
 - Required: pad the edge-anchored side with `env(safe-area-inset-*)` using the function's own fallback argument — `env(safe-area-inset-bottom, 0px)` — rather than wrapping it in `@supports`. The fallback argument is always valid CSS and resolves to `0px` on engines/devices without the constant, so the `@supports` query adds nothing.
 - Required: combine with `max()` when a minimum edge padding must exist even where there's no inset (e.g. desktop, non-notched devices): `padding-block-end: max(env(safe-area-inset-bottom), 1rem);`
 - Never mix the two fallback strategies (a `@supports`-guarded base rule vs. an inline `env(x, fallback)`) for the same property inside one component — pick the inline-fallback form; it's simpler and covers the same cases.
+- Required: apply inline safe-area insets with the *physical* properties (`padding-left`/`padding-right`), not `padding-inline`. `safe-area-inset-left/right` name physical device regions that do not flip with writing mode, but `padding-inline` resolves start/end against it — so in RTL a `padding-inline` shorthand pairs the left inset with the physical right edge. This is the documented physical-anchoring exception from Logical Properties above, not a violation of it.
 - Note (outside CSS): `env()` safe-area values only resolve to non-zero on iOS Safari when the page's `<meta name="viewport">` includes `viewport-fit=cover`. Flag this as a dependency if reviewing/generating for a project targeting iOS, since CSS alone can't fix a missing viewport meta tag.
 
 ```css
 @layer components {
   .bottom-nav {
     padding-block-end: max(env(safe-area-inset-bottom, 0px), 1rem);
-    padding-inline: max(env(safe-area-inset-left, 0px), 1rem) max(env(safe-area-inset-right, 0px), 1rem);
+    /* physical left/right on purpose: safe areas are physical device regions and
+       must not flip with writing mode (see Logical Properties exception) */
+    /* lint-ignore: no-physical-property */
+    padding-left: max(env(safe-area-inset-left, 0px), 1rem);
+    padding-right: max(env(safe-area-inset-right, 0px), 1rem);
   }
 }
 ```

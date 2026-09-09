@@ -1,8 +1,8 @@
 # Accessibility and Performance Rules
 
-# Accessibility
+## Accessibility
 
-## Focus
+### Focus
 
 Priority: HIGH
 
@@ -28,7 +28,7 @@ button:focus {
 }
 ```
 
-## Motion
+### Motion
 
 Priority: HIGH
 
@@ -45,7 +45,7 @@ Priority: HIGH
 
 - For essential motion (loading indicators), reduce rather than remove: shorten duration, drop travel distance, keep opacity cues.
 
-## Contrast and Forced Colors
+### Contrast and Forced Colors
 
 Priority: HIGH
 
@@ -59,9 +59,11 @@ Priority: HIGH
 }
 ```
 
-## Transparency
+### Transparency — Stability: Experimental (safe-degrading)
 
 Priority: MEDIUM
+
+`prefers-reduced-transparency` is not Baseline — Firefox has not shipped it. It is the one Experimental feature this ruleset still states as Required, because its failure mode is inert rather than broken: an engine that does not know the query simply never matches it, leaving the base (transparent) styling in place. There is nothing to guard and nothing to fall back to, so generate it on every profile. Never make the *legible* state depend on the query matching — the base rule must already meet contrast on its own.
 
 - Required: respect `prefers-reduced-transparency` on any element whose background relies on transparency or `backdrop-filter` for legibility (glass/frosted panels, translucent overlays) — raise the background's opacity or fall back to a solid token under the query instead of leaving low-vision users to fight reduced contrast the OS already told the page they don't want.
 
@@ -76,7 +78,7 @@ Priority: MEDIUM
 }
 ```
 
-## Zoom and Scaling
+### Zoom and Scaling
 
 Priority: HIGH
 
@@ -84,7 +86,7 @@ Priority: HIGH
 - Required: layouts survive 200% zoom and 400% reflow — no fixed pixel heights on text containers; prefer `min-block-size` over `block-size` for text-bearing boxes.
 - Required: `rem` for font sizes and type-related tokens so user font-size preferences apply.
 
-## Semantic HTML Compatibility
+### Semantic HTML Compatibility
 
 Priority: MEDIUM
 
@@ -93,21 +95,23 @@ Priority: MEDIUM
 - `reading-flow`/`reading-order` — Stability: Experimental, single-engine. Never generate unless explicitly requested; the underlying rule above (visual order must not diverge from focus/reading order) applies regardless of whether `reading-flow` is available — it is a future tool for stating the intended order explicitly, not a license to reorder with `order` in the meantime.
 - Never remove content from the accessibility tree for styling reasons (`display: none` on content that should remain readable) — use a visually-hidden utility in `utilities`.
 
-# Performance
+## Performance
 
-## Selectors
+### Selectors
 
 Priority: MEDIUM
 
 - Prohibited: universal descendant patterns (`.app * `), selector chains > 3 compounds, unanchored `:has()`.
 - Prefer a single class per rule; prefer `:is()`/`:where()` grouping over repeated long selectors.
 
-## Animation Cost
+### Animation Cost
 
 Priority: HIGH
 
-- Required: animate only `transform` and `opacity`.
-- Prohibited: animating layout properties (`width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`) and `transition: all`.
+- Prefer `transform` and `opacity` for movement and fade — they are the only properties that animate off the main thread, so they stay smooth under load.
+- Prohibited: animating layout properties (`width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`) and `transition: all`. This is the actual constraint: layout-triggering properties force reflow on every frame.
+- Paint-only properties (`color`, `background-color`, `border-color`, `box-shadow`, `filter`) are permitted for short state transitions — they repaint but do not reflow. Keep them off large surfaces and out of long-running loops.
+- Registered custom properties are permitted and often preferable — a `@property`-registered `--angle` or `--density` driving a gradient or a set of derived values is one interpolation instead of many ([rules-advanced.md](rules-advanced.md), `@property`). `display`/`overlay` transitions with `transition-behavior: allow-discrete` are likewise permitted.
 - Required: list transitioned properties explicitly:
 
 ```css
@@ -116,14 +120,14 @@ Priority: HIGH
 }
 ```
 
-- Prefer `will-change` never as a default; only for a measured problem, applied just before the animation and removed after.
+- Never use `will-change` as a default. Apply it only for a measured problem, just before the animation starts, and remove it after — a permanent `will-change` holds a compositor layer for the life of the element.
 
-### Containing Block Side Effect
+#### Containing Block Side Effect
 
 - Required: before adding `transform`, `filter`, `backdrop-filter`, `perspective`, or `will-change: transform` (any of these, even at `1`/`none` idle values) to an element, check for `position: fixed` descendants anywhere inside it — these properties create a new containing block, so the descendant resolves `fixed` positioning against the transformed/filtered ancestor instead of the viewport, breaking modals, tooltips, and sticky overlays nested inside animated cards/lists.
 - Required: when this conflict exists, either animate on a wrapper that has no `position: fixed` descendants, or render the fixed-position element outside the animated ancestor (portal/late-DOM placement) instead of removing the animation.
 
-## Rendering Containment
+### Rendering Containment
 
 Priority: MEDIUM
 
@@ -139,7 +143,7 @@ Priority: MEDIUM
 
 - Never apply containment to elements with overflowing children (popovers, tooltips) — it clips them.
 
-## Reflow Discipline
+### Reflow Discipline
 
 Priority: MEDIUM
 

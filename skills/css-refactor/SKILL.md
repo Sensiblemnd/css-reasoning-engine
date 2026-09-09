@@ -37,7 +37,7 @@ Apply per category; topic rules live in the routed reference file.
 }
 ```
 
-- Required: map repeated literals to ONE token; near-duplicates (`#333`, `#343434`) consolidate to the closest existing token when visually identical, otherwise stay separate and get reported.
+- Required: map repeated literals to ONE token only when they are the same color (`#333`, `#333333`, `rgb(51 51 51)`). Near-duplicates that merely look close (`#333` vs `#343434`) are a rendering change if merged — keep them separate and report the pair, letting the user decide whether the difference was intentional.
 - New tokens are defined in the `tokens` layer in OKLCH; the token value equals the original literal's color exactly (converted), so rendering is unchanged.
 
 ## Physical → Logical properties ([rules-layout.md](../shared/references/rules-layout.md))
@@ -81,7 +81,7 @@ Apply per category; topic rules live in the routed reference file.
 
 - Responsive behavior is a required baseline (see Responsive Layout Baseline). A layout that is fixed-width-only and doesn't reflow is a rendering bug, not a style choice — but converting it to fluid sizing changes computed layout at viewport/container sizes where it previously didn't adapt, which conflicts with Prime Directive 1 (preserve rendering exactly).
 - Required: report missing responsive behavior as a `follow-up` in the change list; do not silently convert fixed widths to fluid sizing unless the user explicitly requests responsive fixes in this pass. This includes: replaced elements missing `max-inline-size: 100%`/`aspect-ratio`, and missing `scrollbar-gutter: stable` on toggling-scroll containers — each reserves/changes space that wasn't reserved/changed before.
-- Exception: a fixed-width value that is purely a magic number with an equivalent fluid expression at the *same* rendered size (e.g., `width: 320px` → `max-inline-size: 320px` with no other behavior change) can be normalized directly — that's a literal-to-logical-property transform, not a responsiveness fix.
+- Exception: converting a fixed-width declaration to its logical equivalent at the *same* rendered size (`width: 320px` → `inline-size: 320px`) can be normalized directly — that's a physical-to-logical-property transform, not a responsiveness fix. Never swap `width` for `max-inline-size` as part of it: `width` pins the box, `max-inline-size` lets it shrink below the value, so they differ at exactly the narrow sizes this section is about. That swap is the responsiveness fix, and it goes in the change list as a `follow-up`.
 
 ## Safe-area `@supports` guard → inline `env()` fallback ([rules-layout.md](../shared/references/rules-layout.md))
 

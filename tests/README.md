@@ -78,6 +78,18 @@ Multiset comparison is deliberate — it survives reformatting of the fixture. T
 trade-off is that a rule firing the right number of times on the wrong lines is
 not caught.
 
+## Benchmarks (not run by the suite)
+
+`benchmarks/` holds fixtures that test the **skills** rather than the linter —
+judgment the mechanical rules cannot check. Nothing in it runs automatically;
+`run.sh` does not touch it. See [benchmarks/README.md](benchmarks/README.md).
+
+`benchmarks/product-card.css` is the LogRocket refactor benchmark: one card with
+seven planted pitfalls where the safe refactor is to *not* make the obvious
+change. It is also the clearest illustration of why a clean lint run is a floor
+— the linter reports 32 findings on it, and acting on the three `no-important`
+ones breaks the file.
+
 ## Directives
 
 Comments recognised anywhere in a stylesheet:

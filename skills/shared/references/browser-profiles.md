@@ -3,6 +3,10 @@
 > Baseline data verified: 2026-09-09, against webstatus.dev and the MDN Baseline banner. Re-verify
 > before promoting or demoting any feature; recompute tiers from the Baseline since column in
 > Feature Stability rather than hand-editing a tier.
+>
+> Where MDN's Baseline banner gives only a month, the exact day comes from the last engine's
+> release note (e.g. `text-box-trim` → Firefox 154, 2026-08-18). Prefer that over rounding, and
+> never date a longhand from a grouped webstatus entry that tracks its shorthand.
 
 ## Profile Resolution
 
@@ -69,6 +73,7 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   details_content:               #  true     optional    false      false
   overscroll_behavior:           #  experimental — never without explicit request
   scroll_state_queries:          #  experimental — never without explicit request
+  reduced_transparency:          #  true     true       true       true   (safe-degrading; see Experimental table)
 
   # Advanced
   property_registration:         #  true     true       true       false
@@ -124,7 +129,7 @@ Re-tiering is arithmetic: take a feature's Baseline since date, compare it to th
 | `:active-view-transition` | 2026-01-13 | ~8 months |
 | `@container style()` | 2026-05-19 (Firefox 151) | ~3.7 months |
 | `field-sizing` | 2026-06-16 (Firefox 152) | ~2.8 months |
-| `text-box-trim` / `text-box-edge` | 2026-08 (longhands only — the `text-box` shorthand is **not** Baseline) | ~1 month |
+| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~0.7 months |
 | `contrast-color()` | 2026-04-10 | ~5 months |
 | `shape()` | 2026-02-24 | ~6.5 months |
 | `sibling-index()` / `sibling-count()` | 2026-08-18 | ~0.7 months |
@@ -141,6 +146,7 @@ Re-tiering is arithmetic: take a feature's Baseline since date, compare it to th
 | View Transitions, cross-document (`@view-transition`, `navigation: auto`) | Not Baseline — Firefox has not shipped it |
 | `@container scroll-state()` (`stuck`, `snapped`, `scrollable`) | Not Baseline — Firefox has not shipped it |
 | `overscroll-behavior` | Not Baseline — Safari has not shipped it |
+| `prefers-reduced-transparency` | Not Baseline — Firefox has not shipped it. **Exception: generate on every profile anyway.** An unsupported engine never matches the query, leaving the base styling untouched, so there is no broken state to guard against and no fallback to write. See rules-a11y-performance.md, Transparency. |
 | `if()`, `@function`, `@mixin`, `corner-shape`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
 
 ## @supports Rules

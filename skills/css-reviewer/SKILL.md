@@ -23,9 +23,9 @@ Required order:
    | Prohibited patterns (Required: load for every review) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
    | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
    | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-   | Grid, Flexbox, logical properties, container queries/units, viewport units, print | [rules-layout.md](../shared/references/rules-layout.md) |
-   | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
-   | Focus, motion, contrast, forced colors, zoom, `contain`, `content-visibility`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
+   | Grid, Flexbox, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, viewport units, safe-area insets, responsive media, print | [rules-layout.md](../shared/references/rules-layout.md) |
+   | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `text-wrap`, hyphenation, `text-box-trim`, **WCAG AA contrast ratios and paired tokens** | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+   | Focus, motion, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
    | Validation states, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
    | `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
    | Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
@@ -35,7 +35,7 @@ Required order:
    node tests/lint.mjs <files>
    ```
 
-   Treat its output as a floor, not a verdict. It covers 15 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
+   Treat its output as a floor, not a verdict. It covers 16 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
 5. Audit the four categories below.
 6. Emit findings in the Required output format, ordered by severity.
 
@@ -69,11 +69,11 @@ Check for:
 - Fixed-size context claimed (print, email) but no `@media print` rules (hidden non-printable chrome, `break-inside: avoid`, ink-safe color) provided
 - A hand-rolled donut-scope workaround (duplicated selectors, extra wrapper classes to fake nested-component precedence) where `@scope` would resolve it by scoping proximity — flag with the specific proximity conflict it would fix, not just "consider `@scope`"
 - `@scope` used only to lower specificity where nesting under a root class already expresses the relationship — misuse of a scoping tool as a specificity tool
-- A modifier class doing the job of a `@container style()` variant where the variant is genuinely token/parent-driven, or (the opposite failure) a style query invented where a plain class would read better
+- A modifier class doing the job of a `@container style()` variant where the variant is genuinely token/parent-driven — **only** on a profile where `container_style_queries` is `true`/`optional`. The opposite failure (a style query invented where a plain class would read better) is a finding on every profile, as is a style query wrapped in `@supports`, which is not a valid test for it and drops the block everywhere
 - Overlay content (modal, menu, toast, combobox) built from `position: fixed` plus a hand-maintained `z-index` instead of `<dialog>`/`[popover]` and the top layer
 - A JS scroll listener recalculating styles every frame — **only** where the project has explicitly opted into scroll-driven animations or `@container scroll-state()`. Both are Experimental (Firefox has shipped neither), so on a default profile the scroll listener is correct and reporting it is a false finding
 - Scroll-driven animations or anchor positioning emitted with no `@supports` guard on `evergreen` or below, or guarded on the wrong property (`anchor-name` instead of `position-anchor`) — a guard that passes where the feature does not work is worse than none
-- A JS height-measurement hack animating a `<details>` disclosure where `::details-content` applies
+- A JS height-measurement hack animating a `<details>` disclosure where `::details-content` applies — **only** on a profile where `details_content` is `true`/`optional`
 - A custom property transitioned or set in `@keyframes` with no `@property` registration — severity `high`, this is a silent functional bug (the transition does nothing) rather than a style issue. Also flag a registration missing `initial-value` for a non-`*` syntax, which is dropped silently and fails the same way
 - A JavaScript positioning library for an anchored overlay on a profile where `anchor_positioning` is `true`/`optional`
 

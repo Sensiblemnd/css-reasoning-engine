@@ -123,7 +123,7 @@ Priority: MEDIUM
     text-wrap: balance;
   }
 
-  p, li {
+  :is(p, li) {
     text-wrap: pretty;
   }
 }
