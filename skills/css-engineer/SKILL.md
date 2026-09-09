@@ -2,7 +2,7 @@
 name: css-engineer
 description: Deterministic rules for writing and generating modern native CSS. Use whenever creating stylesheets, styling components or pages, implementing designs, or making layout, color, typography, animation, or responsive-design decisions. Enforces cascade layers, design tokens, logical properties, container queries, accessibility, and performance rules with configurable browser-compatibility profiles. For auditing existing CSS use css-reviewer; for modernizing existing CSS use css-refactor.
 metadata:
-  version: 2.1.0
+  version: 2.2.0
   priority: high
 ---
 
@@ -35,13 +35,13 @@ Required: resolve the project's browser profile before generating CSS. Sources, 
 | `enterprise` | progressive | Working baseline first, then enhance inside `@supports`. |
 | `legacy`     | extensive   | Fully functional fallback required for every non-universal feature. |
 
-Reason from capabilities, never from browser names or versions. The capability map, feature stability table, and `@supports` rules are defined in [browser-profiles.md](../shared/references/browser-profiles.md).
+Reason from capabilities, never from browser names or versions. The capability map, feature stability table (with per-feature Baseline since dates), and `@supports` rules are the single source of truth in [browser-profiles.md](../shared/references/browser-profiles.md) — do not enumerate features here; the list drifts from that file the moment either one is edited alone.
 
-Stability levels:
+Stability levels, mechanically derived from Baseline status (see browser-profiles.md for the current per-feature table):
 
-- **Stable** — generate normally (Grid, Subgrid, Flexbox, `clamp()`, Cascade Layers, Nesting, Container Queries, `:has()`, `:is()`, `:where()`, `light-dark()`, `color-mix()`, OKLCH, `@property`, logical properties, `@starting-style`, `@scope`, `aspect-ratio`, `scrollbar-gutter`, scroll-driven animations, `:user-valid`/`:user-invalid`, `accent-color`).
-- **Emerging** — generate only when the capability is confirmed for the profile; always behind progressive enhancement (View Transitions).
-- **Experimental** — never generate unless explicitly requested (Anchor Positioning, Custom CSS Functions `@function`, unshipped specs).
+- **Stable** — Baseline widely available, or newly available ≥ 12 months. Generate normally.
+- **Emerging** — Baseline newly available < 12 months. Direct on `modern`; `@supports`-gated on `evergreen`; `false` on `enterprise`/`legacy`.
+- **Experimental** — not yet Baseline. Never generate unless explicitly requested.
 
 # Decision Engine
 
@@ -69,11 +69,17 @@ Color:
 
 Animation:
 - Animating `transform` or `opacity`? → Allowed; add a `prefers-reduced-motion` guard.
+- Transitioning a custom property, or setting one inside `@keyframes`? → Required: register it with `@property` in the `tokens` layer (`syntax`, explicit `inherits`, and `initial-value` for any syntax but `*`). Without registration it cannot interpolate and the transition silently does nothing (see [rules-advanced.md](../shared/references/rules-advanced.md) @property).
 - Animating layout properties (`width`, `height`, `top`, `margin`)? → Prohibited; restructure to `transform`, or use `@starting-style` / view transitions per profile.
+- Effect is driven by scroll position (progress bar, reveal-on-scroll, parallax)? → Scroll-driven animations are Experimental (Firefox has not shipped `animation-timeline`). Do not generate unless explicitly requested; when requested, guard with `@supports (animation-timeline: view())` and ensure the unenhanced state is the *finished* state, never the starting one.
 
 Scoping:
-- Donut scope needed (root-to-boundary styling nesting cannot express)? → `@scope` when the profile capability is `true`.
+- Donut scope or a scoping-proximity conflict (nesting cannot express either)? → `@scope`: direct on `modern`, `@supports at-rule(@scope)`-gated on `evergreen`, unavailable on `enterprise`/`legacy` (see [rules-architecture.md](../shared/references/rules-architecture.md) @scope).
 - Otherwise? → Single component class + nesting (max depth 3).
+
+Overlays:
+- Content must render above everything else (modal, menu, toast, combobox)? → `<dialog>`/`[popover]`, never a `position: fixed` element with an escalating `z-index` (see [rules-interaction.md](../shared/references/rules-interaction.md)).
+- Overlay is anchored to a trigger element (tooltip, dropdown, popover positioned relative to a button)? → Anchor positioning (direct on `modern`, `@supports (position-anchor: --a)`-gated on `evergreen` — guard on `position-anchor`, never `anchor-name`), never a JS positioning library (see [rules-advanced.md](../shared/references/rules-advanced.md) Anchor Positioning).
 
 Forms:
 - Field fails constraint validation? → `:user-invalid` styling paired with the field's existing ARIA error wiring, never a JS-only error class (see [rules-forms.md](../shared/references/rules-forms.md)).
@@ -94,6 +100,7 @@ Print:
 - Required: tokens (custom properties in the `tokens` layer) for color, spacing, typography scale, radius, shadow, and z-index. Never hardcode these values in components.
 - Required: logical properties (`margin-inline`, `padding-block`, `inline-size`, `block-size`, `inset-inline`) instead of physical ones (`margin-left`, `width`, `top`). Exception: physical viewport effects that must not flip with writing mode.
 - Required: layouts are responsive by default (see [rules-layout.md](../shared/references/rules-layout.md) Responsive Layout Baseline) — fluid sizing, and media/container queries where the resize reason demands them, unless the task is explicitly scoped to a fixed-size context.
+- Required: range comparison syntax (`@media (width < 60rem)`, `@container (inline-size > 30rem)`) for media/container queries on `modern`/`evergreen`/`enterprise`; the prefixed `min-width`/`max-width` form only on `legacy`, where an unsupported engine fails to parse the whole query instead of degrading (see [rules-layout.md](../shared/references/rules-layout.md) Responsive Layout Baseline).
 - Required: mobile viewport correctness on every viewport-spanning or edge-anchored element — `dvh` (not bare `vh`) for mobile-affected heights, and `env(safe-area-inset-*)` padding for anything anchored to a physical viewport edge (see [rules-layout.md](../shared/references/rules-layout.md) Viewport Units and Safe Area Insets). Apply regardless of whether the task mentions mobile explicitly.
 - Required: native CSS nesting, maximum depth 3. Never use Sass-style `&-suffix` string concatenation — it is invalid native CSS.
 - Required: selector specificity ≤ (0,2,0) inside components. Use `:where()` to zero out specificity in shared/base selectors.
@@ -112,12 +119,13 @@ Load the reference file when the task touches its topic:
 | Grid, Flexbox, logical properties, container queries/units, viewport units, print | [rules-layout.md](../shared/references/rules-layout.md) |
 | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
 | Focus, motion, contrast, forced colors, zoom, `contain`, `content-visibility`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
-| Validation states, native control color, labels/placeholder | [rules-forms.md](../shared/references/rules-forms.md) |
+| Validation states, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
 | `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
+| Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 
 # Prohibited Patterns
 
-Never emit anything on the canonical list in [prohibited-patterns.md](../shared/references/prohibited-patterns.md). Summary: no `!important`, ID selectors, inline styles, hardcoded colors/spacing, magic numbers, `transition: all`, Sass syntax, unlayered CSS, deep selector chains, cross-component selectors, removed focus indicators, zoom blocking, color-only meaning, layout-property animation, or unnecessary wrappers. Every exception must be explicitly requested or documented with a comment at the use site.
+Never emit anything on the canonical list in [prohibited-patterns.md](../shared/references/prohibited-patterns.md). Summary: no `!important`, ID selectors, inline styles, hardcoded colors/spacing, magic numbers, `transition: all`, Sass syntax, unlayered CSS, deep selector chains, cross-component selectors, duplicate declarations an existing token/utility/component already covers, removed focus indicators, zoom blocking, color-only meaning, media queries duplicating a container query or `clamp()`, a `@supports`-guarded base rule plus enhancement for `env(safe-area-inset-*)` where the function's own fallback argument already covers it, fixed-width-only layout containers that don't reflow, vendor prefixes for Stable features, layout-property animation, unnecessary wrappers, `z-index` escalation for overlays that belong in the top layer, or a JS positioning library where anchor positioning applies. Note that JS scroll listeners are **not** prohibited by default — their CSS replacements (scroll-driven animations, `@container scroll-state()`) are Experimental. Every exception must be explicitly requested or documented with a comment at the use site.
 
 # Self Review Checklist
 
@@ -138,6 +146,7 @@ Modern CSS:
 - [ ] Logical properties used; physical properties justified
 - [ ] Nesting depth ≤ 3; no Sass syntax
 - [ ] `:has()` / `:is()` / `:where()` used where they remove duplication
+- [ ] Overlay content (`<dialog>`, `[popover]`) used instead of a `position: fixed` + `z-index` stack; `@scope` used only for donut scope or proximity, not as a specificity hammer
 
 Typography & Color:
 - [ ] Fluid type/spacing uses `clamp()`
@@ -147,7 +156,8 @@ Typography & Color:
 Accessibility:
 - [ ] `:focus-visible` styles present; no removed focus indicators
 - [ ] Animations guarded by `prefers-reduced-motion`
-- [ ] Contrast meets WCAG AA; `forced-colors` not broken; zoom not blocked
+- [ ] Every custom property named in a `transition` or set in `@keyframes` has an `@property` registration with an `initial-value`
+- [ ] Contrast meets WCAG AA; `prefers-contrast: more` strengthens subtle borders/placeholders; `forced-colors` not broken; zoom not blocked
 - [ ] Form validation feedback uses `:user-valid`/`:user-invalid` (or profile fallback) paired with ARIA wiring, not JS-toggled classes; native controls use `accent-color` instead of rebuilt `appearance: none` markup
 
 Performance:

@@ -179,7 +179,7 @@
     z-index: var(--z-sidebar);
     align-self: start;
     block-size: calc(100dvh - var(--header-block-size));
-    overflow-y: auto;
+    overflow-block: auto;
     padding: var(--space-l) var(--space-m);
     border-inline-end: 1px solid var(--color-border);
   }
@@ -225,7 +225,7 @@
       overflow: hidden;
     }
 
-    body:has(#nav-toggle:checked) .side-nav {
+    body:has(.nav-toggle-input:checked) .side-nav {
       grid-template-rows: 1fr;
       padding-block: var(--space-s);
     }
@@ -330,7 +330,7 @@
     }
   }
 
-  body:has(#nav-toggle:checked) .nav-toggle-icon {
+  body:has(.nav-toggle-input:checked) .nav-toggle-icon {
     background: transparent;
 
     &::before {
@@ -378,11 +378,15 @@
     }
   }
 
-  /* Highlights the sidebar link matching the URL fragment; :has() replaces a JS scroll-spy. */
+  /* Highlights the sidebar link matching the URL fragment; :has() replaces a JS scroll-spy.
+   * :target is defined against the URL fragment, so the id is the platform's own hook here
+   * and no class can express it — the documented ID exception in prohibited-patterns.md. */
+  /* lint-ignore: no-id-selector */
   :where(body):has(#overview:target) .side-nav-link[href="#overview"],
   :where(body):has(#skills:target) .side-nav-link[href="#skills"],
   :where(body):has(#layers:target) .side-nav-link[href="#layers"],
   :where(body):has(#profiles:target) .side-nav-link[href="#profiles"],
+  :where(body):has(#verified:target) .side-nav-link[href="#verified"],
   :where(body):has(#install:target) .side-nav-link[href="#install"] {
     background: var(--color-surface-raised);
     border-inline-start-color: var(--color-accent);
@@ -604,14 +608,14 @@
   .terminal :where(pre) {
     margin: 0;
     padding: var(--space-m);
-    overflow-x: auto;
+    overflow-inline: auto;
     background: var(--color-surface);
     font-size: var(--text-s);
     line-height: 1.7;
   }
 
   .table-scroll {
-    overflow-x: auto;
+    overflow-inline: auto;
   }
 
   .profile-table {

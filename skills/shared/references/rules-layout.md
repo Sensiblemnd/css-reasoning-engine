@@ -46,6 +46,7 @@ Priority: HIGH
 - One-axis alignment or distribution → Required: Flexbox.
 - Plain stacked content → normal flow. Never add `display: grid`/`flex` without a layout need.
 - Prefer `gap` for spacing between siblings in any Grid/Flex context. Never simulate gap with child margins.
+- Masonry layout (`grid-template-rows: masonry`, `grid-lanes`) — Stability: Experimental, single-engine. Never generate unless explicitly requested; when requested, pair with a documented fallback (`auto-fit`/`auto-fill` column grid) for the profile's other capability-`false` targets. Do not invent masonry as the default answer to "Pinterest-style" layout requests — that is `auto-fit`/`auto-fill` with `minmax()` today (see Intrinsic Sizing below).
 
 Preferred:
 
@@ -163,11 +164,34 @@ Rules:
 
 - Required: name containers (`container-name`) when more than one ancestor container can exist.
 - Never make an element query its own size — the container must be an ancestor.
-- Prefer container units (`cqi`, `cqb`, `cqmin`) for values that scale with the container:
+- Prefer logical container units (`cqi`, `cqb`, `cqmin`) over their physical equivalents (`cqw`, `cqh`) for values that scale with the container — same reasoning as the Logical Properties table below. `cqw`/`cqh`/`cqmax` exist and are valid, but reach for them only for the same physical-anchoring exception (a value that must not flip with writing mode):
 
 ```css
 .card-title {
   font-size: clamp(var(--text-m), 4cqi, var(--text-xl));
+}
+```
+
+### Container Style Queries — Stability: Emerging
+
+Priority: MEDIUM — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+
+`@container style(--variant: featured)` queries a container's own custom-property value rather than its size — use it when a component has a token-driven variant (a `--variant` or `--density` custom property set by the page) that should change several descendant declarations at once. It is not a replacement for a modifier class where a class reads better: a one-off visual difference (`.card--featured`) stays a class; a variant that composes with container size queries, or that a parent sets without the component's own markup knowing about it, is what style queries are for.
+
+```css
+@supports (container-type: inline-size) and style(--variant: featured) {
+  @layer components {
+    .card {
+      container-type: inline-size;
+      container-name: card;
+    }
+
+    @container card style(--variant: featured) {
+      .card-title {
+        font-size: var(--text-xl);
+      }
+    }
+  }
 }
 ```
 

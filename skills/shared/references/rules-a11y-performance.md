@@ -59,6 +59,23 @@ Priority: HIGH
 }
 ```
 
+## Transparency
+
+Priority: MEDIUM
+
+- Required: respect `prefers-reduced-transparency` on any element whose background relies on transparency or `backdrop-filter` for legibility (glass/frosted panels, translucent overlays) — raise the background's opacity or fall back to a solid token under the query instead of leaving low-vision users to fight reduced contrast the OS already told the page they don't want.
+
+```css
+@media (prefers-reduced-transparency: reduce) {
+  @layer components {
+    .glass-panel {
+      background: var(--color-surface);
+      backdrop-filter: none;
+    }
+  }
+}
+```
+
 ## Zoom and Scaling
 
 Priority: HIGH
@@ -73,6 +90,7 @@ Priority: MEDIUM
 
 - Never use CSS to fake semantics (a styled `div` where `button` belongs). Flag the HTML instead.
 - Never reorder meaningfully with `order` / `flex-direction: *-reverse` when the visual order must match focus/reading order.
+- `reading-flow`/`reading-order` — Stability: Experimental, single-engine. Never generate unless explicitly requested; the underlying rule above (visual order must not diverge from focus/reading order) applies regardless of whether `reading-flow` is available — it is a future tool for stating the intended order explicitly, not a license to reorder with `order` in the meantime.
 - Never remove content from the accessibility tree for styling reasons (`display: none` on content that should remain readable) — use a visually-hidden utility in `utilities`.
 
 # Performance

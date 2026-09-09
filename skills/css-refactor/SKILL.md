@@ -2,7 +2,7 @@
 name: css-refactor
 description: Deterministic rules for modernizing existing CSS without changing visual behavior. Use whenever refactoring stylesheets, migrating Sass/Less to native CSS, converting hardcoded values to design tokens, adopting cascade layers or logical properties in legacy code, or cleaning up CSS. Preserves rendering and browser compatibility while reducing complexity. For writing new CSS use css-engineer; for audit-only findings use css-reviewer.
 metadata:
-  version: 2.1.0
+  version: 2.2.0
   priority: high
 ---
 
@@ -103,10 +103,18 @@ Apply per category; topic rules live in the routed reference file.
 - Risk: `low` — behavior-preserving only when the existing JS validation triggers on the same timing the pseudo-class covers (after interaction/on submit attempt). If the JS validation fires on custom logic beyond native constraint validation, report as a follow-up instead of converting.
 - Never remove existing `aria-invalid`/`aria-describedby` wiring during the conversion; CSS-only pseudo-classes don't announce anything to assistive technology on their own.
 
-## Duplication → Composition
+## Duplication → Composition ([rules-architecture.md](../shared/references/rules-architecture.md))
 
 - Identical declaration blocks → one rule with an `:is()` selector list, a utility class, or a shared token.
 - Never merge blocks that merely look similar today — only exact duplicates or token-extractable values.
+- A hand-rolled donut-scope workaround (duplicated selectors or extra wrapper/modifier classes existing only to fake nested-component precedence) → `@scope` around the shared root, relying on scoping proximity instead of the duplication. Risk: `low` — behavior-preserving only when the duplicated rule set is proven to resolve the same nested-component conflict `@scope` proximity resolves; if the duplication exists for an unrelated reason, report as a `follow-up` instead of converting.
+
+## JS Effects → Native CSS ([rules-advanced.md](../shared/references/rules-advanced.md), [rules-interaction.md](../shared/references/rules-interaction.md))
+
+- JS scroll listener recalculating styles on every frame (progress bars, reveal-on-scroll, parallax, sticky-state classes) → `animation-timeline`/`animation-range` (scroll-driven animation) or `@container scroll-state()`. **Skip by default.** Both targets are Experimental — Firefox has shipped neither — so this conversion removes working behavior in a shipping engine. Perform it only when the project has explicitly opted into the feature, and then only behind `@supports (animation-timeline: view())` with the JS retained or the unenhanced state proven usable. Risk: `follow-up` in every case; never `low`.
+- JS positioning library (Popper-style) computing an anchored overlay's position → native anchor positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`) on a profile where `anchor_positioning` is `true`/`optional`. Risk: `follow-up` by default — collision/flip logic in the JS library rarely maps 1:1 onto `position-try-fallbacks`; convert directly only when the library's fallback behavior is a simple flip the CSS reproduces exactly, and name the assumption. Guard on `position-anchor`, not `anchor-name` — the latter is Baseline and detects nothing.
+- JS-authored autosize `<textarea>`/`<input>` (input listener measuring `scrollHeight`, writing it back as inline height) → `field-sizing: content` plus a `max-block-size` cap. Risk: `low` — behavior-preserving only when the existing JS has no custom min/max logic beyond a simple cap; otherwise report as `follow-up`.
+- `z-index` overlay stack (`position: fixed` + escalating `z-index` per component) → `<dialog>`/`[popover]` and the top layer. Risk: `follow-up` — moving an element into the top layer can change its stacking relative to siblings that were relying on the old `z-index` order; verify every sibling relationship before converting, don't convert silently.
 
 # Required Output
 
@@ -126,5 +134,7 @@ Never mix an unrequested behavior change into refactor output.
 - [ ] Safe-area `@supports`-guard + base-rule pairs collapsed to inline `env(x, fallback)`; missing `dvh`/safe-area coverage reported as follow-up, not silently added
 - [ ] Any `transform`/`filter`/`will-change` + `position: fixed` descendant conflict reported as follow-up, not restructured inline
 - [ ] JS-toggled validation classes converted to `:user-valid`/`:user-invalid` only when trigger timing matches exactly, else reported as follow-up; existing ARIA wiring left intact
+- [ ] Hand-rolled donut-scope duplication converted to `@scope` only where the proximity conflict is proven identical, else reported as follow-up
+- [ ] JS scroll listeners, positioning libraries, autosize textareas, and `z-index` overlay stacks converted per the JS Effects → Native CSS catalog, each risk-rated (`low` conversions named with their assumption, `follow-up` left unconverted)
 - [ ] Prohibited patterns eliminated or reported as follow-ups
 - [ ] Change list covers every edit, each with a risk rating

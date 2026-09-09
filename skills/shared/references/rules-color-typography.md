@@ -1,4 +1,4 @@
-# Color and Typography Rules: Tokens, OKLCH, light-dark(), clamp(), text-wrap
+# Color and Typography Rules: Tokens, OKLCH, light-dark(), clamp(), text-wrap, contrast-color(), text-box-trim
 
 ## Token System
 
@@ -63,6 +63,23 @@ Avoid:
 }
 ```
 
+### `contrast-color()` — Stability: Emerging
+
+Priority: LOW — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+
+`contrast-color()` returns a browser-evaluated black or white companion for a base color, for the case a semantic token pair can't cover: an accent color that's user- or CMS-supplied at render time, where no design-time token pairing exists to hand-author against. Prefer the manual token-pairing rule in Contrast below whenever the color is known at author time — `contrast-color()` is the fallback for the case it isn't, not a replacement for designing paired tokens.
+
+```css
+@supports (color: contrast-color(red)) {
+  @layer components {
+    .badge {
+      background: var(--color-user-accent);
+      color: contrast-color(var(--color-user-accent));
+    }
+  }
+}
+```
+
 ## Fluid Typography and Spacing
 
 Priority: HIGH
@@ -108,6 +125,23 @@ Priority: MEDIUM
 
   p, li {
     text-wrap: pretty;
+  }
+}
+```
+
+### `text-box-trim` / `text-box-edge` — Stability: Emerging
+
+Priority: LOW — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+
+Prefer `text-box-trim` + `text-box-edge` for optical centering of headings and button labels — trimming the leading/trailing half-leading that font metrics otherwise add above a capital letter and below a baseline — instead of a hand-tuned negative margin guessed per typeface.
+
+```css
+@supports (text-box-trim: trim-both) {
+  @layer components {
+    .button {
+      text-box-trim: trim-both;
+      text-box-edge: cap alphabetic;
+    }
   }
 }
 ```

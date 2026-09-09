@@ -13,7 +13,7 @@ Priority: HIGH. This list applies to every CSS task. Role application:
 Never generate, accept, or leave in place:
 
 - `!important` — Exception: overriding third-party inline styles, in the `overrides` layer only, with a comment.
-- ID selectors for styling.
+- ID selectors for styling. Exception: an id referenced because the *platform* keys behavior to it, not to raise specificity — `:has(#section:target)`, where `:target` is defined against the URL fragment and no class can express it. A styling hook that happens to be an id is not covered: if the element also carries a class, match the class (`:has(.nav-toggle-input:checked)`, never `:has(#nav-toggle:checked)`).
 - Inline `style` attributes.
 - Hardcoded colors in components (hex, `rgb()`, named colors) — semantic tokens only.
 - Hardcoded spacing / magic numbers — semantic tokens only.
@@ -32,6 +32,9 @@ Never generate, accept, or leave in place:
 - Vendor prefixes for Stable features.
 - Animating layout properties (`width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`).
 - Unnecessary wrapper elements introduced only to enable styling.
+- A JS scroll listener recalculating styles on every frame **where the CSS replacement is available for the resolved profile**. Scroll-driven animations (`animation-timeline`) and `@container scroll-state()` are both Experimental — not Baseline, Firefox has shipped neither — so this is not a prohibition on `evergreen` or below. Flag the JS only when the project has explicitly opted into those features; otherwise a scroll listener is the correct implementation and must not be reported as a violation.
+- `z-index` escalation (`z-index: 9999` and successors) for overlay content that belongs in the top layer (`<dialog>`, `[popover]`) — see [rules-interaction.md](rules-interaction.md).
+- A JavaScript positioning library for anchored overlays (tooltips, menus, comboboxes) on a profile where the `anchor_positioning` capability is `true` or `optional` — see [rules-advanced.md](rules-advanced.md) Anchor Positioning.
 
 ## Exceptions
 

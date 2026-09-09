@@ -1,5 +1,9 @@
 # Browser Profiles, Capabilities, and @supports Rules
 
+> Baseline data verified: 2026-09-09, against webstatus.dev and the MDN Baseline banner. Re-verify
+> before promoting or demoting any feature; recompute tiers from the Baseline since column in
+> Feature Stability rather than hand-editing a tier.
+
 ## Profile Resolution
 
 Priority: HIGH
@@ -28,32 +32,57 @@ browser_profiles:
 
 ## Capability Map
 
-Reason from capabilities, never from browser names or versions. Per-profile defaults:
+Reason from capabilities, never from browser names or versions. Per-profile defaults, grouped by topic:
 
 ```yaml
-capabilities:                 # modern  evergreen  enterprise  legacy
-  cascade_layers:             #  true     true       true       false
-  nesting:                    #  true     true       true       false
-  container_queries:          #  true     true       true       false
-  subgrid:                    #  true     true       false      false
-  scrollbar_gutter:           #  true     true       false      false
-  has_selector:               #  true     true       true       false
-  is_where_selectors:         #  true     true       true       true
-  logical_properties:         #  true     true       true       true
-  clamp:                      #  true     true       true       true
-  light_dark:                 #  true     true       false      false
-  color_mix:                  #  true     true       true       false
-  oklch:                      #  true     true       true       false
-  relative_colors:            #  true     true       false      false
-  property_registration:      #  true     true       true       false
-  starting_style:             #  true     true       false      false
-  scope:                      #  true     true       false      false
-  scroll_driven_animations:   #  true     true       false      false
-  user_valid_invalid:         #  true     true       true       false
-  accent_color:               #  true     true       true       false
-  view_transitions:           #  optional optional   false      false
-  anchor_positioning:         #  experimental — never without explicit request
-  custom_functions:           #  experimental — never without explicit request
+capabilities:                    # modern  evergreen  enterprise  legacy
+
+  # Architecture
+  cascade_layers:                #  true     true       true       false
+  nesting:                       #  true     true       true       false
+  scope:                         #  true     optional    false      false
+  has_selector:                  #  true     true       true       false
+  is_where_selectors:            #  true     true       true       true
+
+  # Layout
+  container_queries:             #  true     true       true       false
+  container_style_queries:       #  true     optional    false      false
+  subgrid:                       #  true     true       false      false
+  scrollbar_gutter:              #  true     true       false      false
+  logical_properties:            #  true     true       true       true
+  clamp:                         #  true     true       true       true
+  anchor_positioning:            #  true     optional    false      false
+
+  # Color and Typography
+  light_dark:                    #  true     true       false      false
+  color_mix:                     #  true     true       true       false
+  oklch:                         #  true     true       true       false
+  relative_colors:               #  true     true       false      false
+  contrast_color:                #  true     optional    false      false
+  text_box_trim:                 #  true     optional    false      false
+
+  # Interaction
+  scroll_snap:                   #  true     true       true       false
+  dialog:                        #  true     true       true       false
+  popover:                       #  true     true       false      false
+  open_pseudo:                   #  true     optional    false      false
+  details_content:               #  true     optional    false      false
+  overscroll_behavior:           #  experimental — never without explicit request
+  scroll_state_queries:          #  experimental — never without explicit request
+
+  # Advanced
+  property_registration:         #  true     true       true       false
+  starting_style:                #  true     true       false      false
+  scroll_driven_animations:      #  experimental — never without explicit request
+  view_transitions:              #  true     optional    false      false
+  active_view_transition:        #  true     optional    false      false
+  view_transitions_cross_doc:    #  experimental — never without explicit request
+  field_sizing:                  #  true     optional    false      false
+  shape_function:                #  true     optional    false      false
+  sibling_index_count:           #  true     optional    false      false
+  custom_functions:              #  experimental — never without explicit request
+  user_valid_invalid:            #  true     true       true       false
+  accent_color:                  #  true     true       true       false
 ```
 
 Rules:
@@ -66,11 +95,53 @@ Rules:
 
 ## Feature Stability
 
-| Level | Behavior | Features |
-| ----- | -------- | -------- |
-| Stable | Generate normally | Cascade Layers, Grid, Subgrid, Flexbox, Nesting, Container Queries, `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `light-dark()`, `color-mix()`, OKLCH, `@property`, `@starting-style`, `@scope`, `text-wrap`, `dvh`/`svh`/`lvh`, `aspect-ratio`, `scrollbar-gutter`, scroll-driven animations (`animation-timeline`), `:user-valid`/`:user-invalid`, `accent-color` |
-| Emerging | Only when capability confirmed; always progressive enhancement | View Transitions |
-| Experimental | Never unless explicitly requested | Anchor Positioning, Custom CSS Functions (`@function`), unshipped specs |
+Priority: HIGH
+
+Tiers are derived mechanically from Baseline status, not maintained by hand:
+
+- **Stable** — Baseline *widely available*, or Baseline *newly available* for ≥ 12 months as of the verification date above. Generate normally.
+- **Emerging** — Baseline *newly available* for < 12 months. Direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; `false` for `enterprise`/`legacy`.
+- **Experimental** — not yet Baseline (at least one major engine missing). Never generate unless explicitly requested.
+
+Re-tiering is arithmetic: take a feature's Baseline since date, compare it to the verification date above, apply the 12-month cutoff. A feature crossing the cutoff moves tiers on the next verification pass; it does not require rewriting the rule that describes it.
+
+### Stable
+
+| Feature | Baseline since |
+| ------- | --------------- |
+| Cascade Layers, Grid, Subgrid, Flexbox, Nesting, Container Queries (size), `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `light-dark()`, `color-mix()`, OKLCH, `@property`, `@starting-style`, `text-wrap`, `dvh`/`svh`/`lvh`, `aspect-ratio`, `scrollbar-gutter`, `:user-valid`/`:user-invalid`, `accent-color` | widely available |
+| Scroll snap (`scroll-snap-type`/`-align`, `scroll-padding`/`scroll-margin`) | widely available since 2020–2022 |
+| `<dialog>`, `::backdrop` | widely available since 2022–2024 |
+| `popover`, `:popover-open` | 2025-01-27 (newly available, > 12mo — Stable) |
+
+### Emerging
+
+| Feature | Baseline since (last engine) | Age as of 2026-09-09 |
+| ------- | --------------- | --------------------- |
+| Anchor Positioning (`anchor-name`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026 — but see the split note below | partial |
+| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~5.5 months |
+| View Transitions, same-document (`view-transition-name`, `view-transition-class`, `::view-transition-*`) | 2025-10-14 (Firefox 144) | ~11 months |
+| `:active-view-transition` | 2026-01-13 | ~8 months |
+| `@container style()` | 2026-05-19 (Firefox 151) | ~3.7 months |
+| `field-sizing` | 2026-06-16 (Firefox 152) | ~2.8 months |
+| `text-box-trim` / `text-box-edge` | 2026-08 (longhands only — the `text-box` shorthand is **not** Baseline) | ~1 month |
+| `contrast-color()` | 2026-04-10 | ~5 months |
+| `shape()` | 2026-02-24 | ~6.5 months |
+| `sibling-index()` / `sibling-count()` | 2026-08-18 | ~0.7 months |
+| `:open` | 2026-05-11 | ~4 months |
+| `::details-content` | 2025-09-16 (Firefox 143) | ~11.8 months — crosses to Stable within weeks; re-verify before relying on this row |
+
+**Anchor Positioning is split and must be feature-detected on its weakest part.** `anchor-name`, `position-area` and `position-try-fallbacks` are Baseline 2026 newly available, but `position-anchor` is still Limited availability, and grouped Baseline data (webstatus.dev `anchor-positioning`) therefore reports the whole feature as not Baseline. Treat it as Emerging and key the `@supports` guard to `position-anchor`, never to `anchor-name` — guarding on the part that already shipped everywhere detects nothing. Re-check this split on the next verification pass; it is the row most likely to have moved.
+
+### Experimental
+
+| Feature | Why |
+| ------- | --- |
+| Scroll-driven animations (`animation-timeline: scroll()`/`view()`, `animation-range`, `view-timeline-name`, `timeline-scope`) | Not Baseline — Chrome 115 (2023-07), Safari 26 (2025-09), **Firefox has not shipped it**. Previously mis-tiered as Stable in this file; corrected 2026-09-09. |
+| View Transitions, cross-document (`@view-transition`, `navigation: auto`) | Not Baseline — Firefox has not shipped it |
+| `@container scroll-state()` (`stuck`, `snapped`, `scrollable`) | Not Baseline — Firefox has not shipped it |
+| `overscroll-behavior` | Not Baseline — Safari has not shipped it |
+| `if()`, `@function`, `@mixin`, `corner-shape`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
 
 ## @supports Rules
 
@@ -92,6 +163,20 @@ Preferred (profile `enterprise`, capability `false` needs a working baseline):
   @supports (grid-template-columns: subgrid) {
     .card {
       grid-template-columns: subgrid; /* enhancement: inherits the parent's tracks exactly, no drift */
+    }
+  }
+}
+```
+
+Preferred (Emerging at-rule feature, capability `optional` on `evergreen` — feature-detect the at-rule itself, not a property inside it):
+
+```css
+@supports at-rule(@scope) {
+  @layer components {
+    @scope (.card) {
+      a {
+        color: var(--color-link-on-surface);
+      }
     }
   }
 }

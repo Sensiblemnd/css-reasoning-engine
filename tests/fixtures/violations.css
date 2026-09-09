@@ -1,0 +1,111 @@
+/* Fixture: every lint rule fires exactly once.
+ *
+ * Each `expect:` annotation declares which rule ids the following construct
+ * should produce. `node tests/lint.mjs --self-test` compares the multiset of
+ * annotated ids against the multiset of actual findings, so a rule that stops
+ * firing (regression) and a rule that fires twice (false positive) both fail.
+ *
+ * Keep one violation per construct. If a construct trips two rules, annotate
+ * both — but prefer splitting it. */
+
+/* expect: no-unlayered */
+.orphan-rule {
+  color: var(--color-accent);
+}
+
+@layer layout {
+  /* expect: no-prefixed-media-range */
+  @media (min-width: 48rem) {
+    .shell {
+      display: grid;
+    }
+  }
+}
+
+@layer components {
+  /* expect: no-important */
+  .important-abuse {
+    color: var(--color-accent) !important;
+  }
+
+  /* expect: no-id-selector */
+  #main-nav {
+    display: grid;
+  }
+
+  /* expect: no-literal-color */
+  .literal-color {
+    background: #1e40af;
+  }
+
+  /* expect: no-physical-property */
+  .physical-property {
+    margin-left: var(--space-m);
+  }
+
+  /* expect: no-transition-all */
+  .transition-all {
+    transition: all 200ms ease-out;
+  }
+
+  /* expect: no-sass-concat */
+  .button {
+    &-icon {
+      opacity: 1;
+    }
+  }
+
+  /* expect: max-nesting-depth */
+  .level-one {
+    .level-two {
+      .level-three {
+        .level-four {
+          opacity: 1;
+        }
+      }
+    }
+  }
+
+  /* expect: max-selector-depth */
+  .sidebar .card .card-title a {
+    opacity: 1;
+  }
+
+  /* expect: no-bare-vh */
+  .hero {
+    block-size: 100vh;
+  }
+
+  /* expect: no-vendor-prefix */
+  .prefixed {
+    -webkit-box-shadow: var(--shadow-raised);
+  }
+
+  /* expect: no-unanchored-has */
+  :has(.form-error) {
+    opacity: 1;
+  }
+
+  /* expect: no-forced-color-adjust-none */
+  .swatch {
+    forced-color-adjust: none;
+  }
+
+  /* expect: no-outline-none */
+  .link:focus-visible {
+    outline: none;
+  }
+
+  /* An unregistered custom property interpolates discretely, so the
+   * transition silently does nothing. */
+  /* expect: unregistered-animated-property */
+  .density {
+    transition: --density 200ms ease-out;
+  }
+
+  /* var() in a transition value names a duration, not a transitioned
+   * property — must not be flagged. */
+  .timed {
+    transition: opacity var(--duration-s) ease-out;
+  }
+}

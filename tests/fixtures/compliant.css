@@ -1,0 +1,135 @@
+/* Fixture: must produce zero findings.
+ *
+ * This is the linter's false-positive guard. Everything here is CSS the
+ * css-engineer skill should be willing to emit for the `modern` profile:
+ * layered, semantic tokens, logical properties, range syntax, nesting <= 3. */
+
+@layer reset, tokens, base, layout, components, utilities, overrides;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+@layer tokens {
+  /* Registered so it interpolates; see rules-advanced.md @property. */
+  @property --density {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+  }
+
+  :root {
+    color-scheme: light dark;
+
+    --color-surface: light-dark(oklch(0.98 0.01 250), oklch(0.22 0.02 250));
+    --color-on-surface: light-dark(oklch(0.25 0.02 250), oklch(0.95 0.01 250));
+    --color-accent: oklch(0.58 0.16 250);
+    --color-focus: oklch(0.62 0.19 250);
+
+    --space-s: 0.5rem;
+    --space-m: 1rem;
+    --space-l: 1.5rem;
+
+    --radius-card: 0.75rem;
+    --shadow-raised: 0 1px 3px oklch(0 0 0 / 0.2);
+    --text-m: clamp(1rem, 0.95rem + 0.25vi, 1.125rem);
+  }
+}
+
+@layer base {
+  :where(a, button) {
+    color: var(--color-accent);
+  }
+
+  :where(a, button):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  :where(h1, h2, h3) {
+    text-wrap: balance;
+  }
+
+  :where(p) {
+    text-wrap: pretty;
+    font-size: var(--text-m);
+  }
+}
+
+@layer layout {
+  .shell {
+    display: grid;
+    gap: var(--space-m);
+    padding-inline: var(--space-m);
+    padding-block: var(--space-l);
+    min-block-size: 100dvh;
+  }
+
+  @media (width >= 48rem) {
+    .shell {
+      grid-template-columns: 16rem 1fr;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    display: grid;
+    gap: var(--space-s);
+    padding: var(--space-m);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    color: var(--color-on-surface);
+    container-type: inline-size;
+    container-name: card;
+
+    &:hover {
+      box-shadow: var(--shadow-raised);
+    }
+
+    img {
+      inline-size: 100%;
+      block-size: auto;
+      border-radius: var(--radius-card);
+    }
+  }
+
+  .card:has(.card-badge) {
+    border-block-start: 2px solid var(--color-accent);
+  }
+
+  @container card (inline-size > 30rem) {
+    .card {
+      grid-template-columns: auto 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card {
+      /* --density is registered above, so this genuinely interpolates. */
+      transition: box-shadow 200ms ease-out, --density 200ms ease-out;
+    }
+  }
+}
+
+@layer utilities {
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@layer overrides {
+  /* Third-party widget ships inline styles; documented exception. */
+  .vendor-widget-root {
+    display: block !important;
+  }
+}

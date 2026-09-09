@@ -6,9 +6,9 @@ A collection of Agent Skills that give AI coding assistants CSS engineering judg
 
 | Skill | Role | Description |
 | ----- | ---- | ----------- |
-| [css-engineer](skills/css-engineer/SKILL.md) | Generate | Write new modern native CSS: decision engine for layout/responsive/color/animation choices, cascade layers, tokens, logical properties, self-review checklist. |
-| [css-reviewer](skills/css-reviewer/SKILL.md) | Audit | Review existing CSS and report structured findings (Issue / Severity / Location / Problem / Why / Fix / Example) across architecture, modern CSS, accessibility, and performance. |
-| [css-refactor](skills/css-refactor/SKILL.md) | Modernize | Refactor existing CSS without changing rendering: literals→tokens, physical→logical, Sass→native, unlayered→layered, with cascade-safety verification and a risk-rated change list. |
+| [css-engineer](skills/css-engineer/SKILL.md) | Generate | Write new modern native CSS: decision engine for layout/responsive/color/animation/scoping/overlay choices, cascade layers, tokens, logical properties, forms, print, mobile viewport, subgrid, self-review checklist. |
+| [css-reviewer](skills/css-reviewer/SKILL.md) | Audit | Review existing CSS and report structured findings (Issue / Severity / Location / Problem / Why / Fix / Example) across architecture, modern CSS, accessibility, and performance, routed through the same topic→file table the engineer uses. |
+| [css-refactor](skills/css-refactor/SKILL.md) | Modernize | Refactor existing CSS without changing rendering: literals→tokens, physical→logical, Sass→native, unlayered→layered, JS effects→native CSS (anchor positioning, `field-sizing`, top layer), with cascade-safety verification and a risk-rated change list. |
 
 All three route into one shared knowledge base, so the rules cannot drift between roles.
 
@@ -25,13 +25,35 @@ skills/
 │       ├── rules-color-typography.md
 │       ├── rules-a11y-performance.md
 │       ├── rules-forms.md
-│       └── rules-advanced.md
+│       ├── rules-advanced.md
+│       └── rules-interaction.md
 ├── css-engineer/SKILL.md
 ├── css-reviewer/SKILL.md
 └── css-refactor/SKILL.md
+tests/                             # zero-dependency linter for the rules
+├── lint.mjs                       # rule engine + CLI
+├── run.sh                         # self-test, then gate repo stylesheets
+├── README.md
+└── fixtures/                      # compliant.css + annotated violations.css
+docs/                              # static GitHub Pages site, no build step
+.github/workflows/lint.yml         # runs tests/run.sh on push and PR
 ```
 
 Each SKILL.md is a lean core (philosophy, workflow, checklists) that references `../shared/references/` for topic rules.
+
+## Tests
+
+The mechanically checkable subset of the rules is enforced by a zero-dependency linter, so the rules are executable and not just documentation:
+
+```sh
+./tests/run.sh                    # self-test the linter, then gate docs/styles.css
+node tests/lint.mjs path/to.css   # lint any stylesheet
+node tests/lint.mjs --list-rules  # every rule and what it enforces
+```
+
+Requires Node; there is no `package.json` and no install step. It also runs in CI on every push and pull request ([.github/workflows/lint.yml](.github/workflows/lint.yml)).
+
+A clean run is a floor, not a pass — judgment rules (token semantics, `@scope` suitability, contrast, profile compliance) stay with `css-reviewer`. See [tests/README.md](tests/README.md).
 
 ## Installation
 

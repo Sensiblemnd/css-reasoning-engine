@@ -2,7 +2,7 @@
 name: css-reviewer
 description: Deterministic audit workflow for reviewing existing CSS. Use whenever reviewing, auditing, or critiquing stylesheets or CSS in a pull request, checking CSS quality, or when asked to find problems in CSS code. Produces structured findings (Issue / Severity / Location / Problem / Why / Fix / Example) covering architecture, modern-CSS usage, accessibility, and performance against a configurable browser profile. For writing new CSS use css-engineer; for applying modernization use css-refactor.
 metadata:
-  version: 2.1.0
+  version: 2.2.0
   priority: high
 ---
 
@@ -16,9 +16,28 @@ Required order:
 
 1. Resolve the browser profile (explicit instruction → project config → default `evergreen`) per [browser-profiles.md](../shared/references/browser-profiles.md). Every finding must be valid for that profile.
 2. Load [prohibited-patterns.md](../shared/references/prohibited-patterns.md) — every occurrence is a finding.
-3. Load the topic reference for each area the CSS under review touches ([rules-architecture.md](../shared/references/rules-architecture.md), [rules-layout.md](../shared/references/rules-layout.md), [rules-color-typography.md](../shared/references/rules-color-typography.md), [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md), [rules-forms.md](../shared/references/rules-forms.md), [rules-advanced.md](../shared/references/rules-advanced.md)).
-4. Audit the four categories below.
-5. Emit findings in the Required output format, ordered by severity.
+3. Load the topic reference for each area the CSS under review touches:
+
+   | Topic | File |
+   | ----- | ---- |
+   | Prohibited patterns (Required: load for every review) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
+   | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
+   | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
+   | Grid, Flexbox, logical properties, container queries/units, viewport units, print | [rules-layout.md](../shared/references/rules-layout.md) |
+   | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+   | Focus, motion, contrast, forced colors, zoom, `contain`, `content-visibility`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
+   | Validation states, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
+   | `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
+   | Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
+4. If the project vendors this repo's linter (`tests/lint.mjs`), run it over the files under review for a mechanical first pass:
+
+   ```sh
+   node tests/lint.mjs <files>
+   ```
+
+   Treat its output as a floor, not a verdict. It covers 15 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
+5. Audit the four categories below.
+6. Emit findings in the Required output format, ordered by severity.
 
 # Audit Categories
 
@@ -48,6 +67,15 @@ Check for:
 - Sass syntax remnants in native CSS
 - Native checkbox/radio/range recolored via wrapper `div`s or hidden-input hacks instead of `accent-color`
 - Fixed-size context claimed (print, email) but no `@media print` rules (hidden non-printable chrome, `break-inside: avoid`, ink-safe color) provided
+- A hand-rolled donut-scope workaround (duplicated selectors, extra wrapper classes to fake nested-component precedence) where `@scope` would resolve it by scoping proximity — flag with the specific proximity conflict it would fix, not just "consider `@scope`"
+- `@scope` used only to lower specificity where nesting under a root class already expresses the relationship — misuse of a scoping tool as a specificity tool
+- A modifier class doing the job of a `@container style()` variant where the variant is genuinely token/parent-driven, or (the opposite failure) a style query invented where a plain class would read better
+- Overlay content (modal, menu, toast, combobox) built from `position: fixed` plus a hand-maintained `z-index` instead of `<dialog>`/`[popover]` and the top layer
+- A JS scroll listener recalculating styles every frame — **only** where the project has explicitly opted into scroll-driven animations or `@container scroll-state()`. Both are Experimental (Firefox has shipped neither), so on a default profile the scroll listener is correct and reporting it is a false finding
+- Scroll-driven animations or anchor positioning emitted with no `@supports` guard on `evergreen` or below, or guarded on the wrong property (`anchor-name` instead of `position-anchor`) — a guard that passes where the feature does not work is worse than none
+- A JS height-measurement hack animating a `<details>` disclosure where `::details-content` applies
+- A custom property transitioned or set in `@keyframes` with no `@property` registration — severity `high`, this is a silent functional bug (the transition does nothing) rather than a style issue. Also flag a registration missing `initial-value` for a non-`*` syntax, which is dropped silently and fails the same way
+- A JavaScript positioning library for an anchored overlay on a profile where `anchor_positioning` is `true`/`optional`
 
 ## Accessibility
 
@@ -55,6 +83,7 @@ Check for:
 - Missing or removed `:focus-visible` handling
 - Animations/transitions without `prefers-reduced-motion` guards
 - Contrast below WCAG AA; meaning encoded by color alone
+- Subtle borders/placeholders/dividers with no `prefers-contrast: more` strengthening
 - Keyboard traps caused by CSS (hidden focusables, `pointer-events` abuse, visual order diverging from focus order)
 - `forced-colors` breakage (shadow/background-only boundaries, `forced-color-adjust: none`)
 - Zoom blocking, `px`-locked font sizes

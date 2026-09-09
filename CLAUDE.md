@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-A collection of Claude Agent Skills that give AI coding assistants CSS engineering judgment. The skills are deterministic rule systems (closer to an ESLint config or an architecture RFC than a tutorial), not example code to imitate. There is no build, lint, or test tooling — the repository's output *is* the skill definitions plus a static marketing/docs site.
+A collection of Claude Agent Skills that give AI coding assistants CSS engineering judgment. The skills are deterministic rule systems (closer to an ESLint config or an architecture RFC than a tutorial), not example code to imitate. There is no build step — the repository's output *is* the skill definitions plus a static marketing/docs site.
+
+There is a test suite: `./tests/run.sh` self-tests the rule linter and then gates `docs/styles.css` against it. It is zero-dependency (Node, no `package.json`, no install). Run it after changing `docs/styles.css` or `tests/`. See `tests/README.md`.
 
 ## Working conventions
 
@@ -30,6 +32,10 @@ skills/
 └── css-refactor/SKILL.md  # role: modernize CSS without changing rendering
 docs/           # static GitHub Pages site (index.html + styles.css), no build step
 planning/       # original project briefs, not part of the published site
+tests/          # zero-dependency linter for the mechanically checkable rules
+├── lint.mjs        # rule engine + CLI (--self-test, --list-rules)
+├── run.sh          # self-test, then gate repo stylesheets
+└── fixtures/       # compliant.css (must be clean) + violations.css (annotated)
 ```
 
 All three skills route into the same `skills/shared/references/` files so the rules cannot drift between generating, reviewing, and refactoring. When editing any rule, update it in `shared/references/` — never fork a rule into a single skill's own `SKILL.md`.

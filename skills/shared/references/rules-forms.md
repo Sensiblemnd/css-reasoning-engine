@@ -1,4 +1,4 @@
-# Forms Rules: Validation States, Native Control Color, Labels
+# Forms Rules: Validation States, Native Control Color, Field Sizing, Native Select, Labels
 
 ## Validation States
 
@@ -49,6 +49,32 @@ input[type="checkbox"] {
 ```
 
 - `accent-color` degrades to the browser/OS default automatically where unsupported (profile capability `false`) — no fallback declaration needed.
+
+## Field Sizing — Stability: Emerging
+
+Priority: MEDIUM — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+
+Required: `field-sizing: content` for a `<textarea>` or `<input>` that should grow with its own content, instead of a JS input-listener autosize (measuring `scrollHeight`, writing it back as an inline `height`). The JS version re-measures on every keystroke and still gets the first paint wrong before the listener attaches; `field-sizing` sizes correctly from the initial render.
+
+```css
+@supports (field-sizing: content) {
+  @layer components {
+    .field-textarea {
+      field-sizing: content;
+      max-block-size: var(--textarea-max-block-size);
+    }
+  }
+}
+```
+
+- Required: pair with `max-block-size`/`max-inline-size` so unbounded content still stops growing at a sane limit — `field-sizing: content` alone has no ceiling.
+
+## Native Select Styling
+
+Priority: LOW
+
+- `:open` ([rules-interaction.md](rules-interaction.md), Stability: Emerging) matches a `<select>` while its picker is showing, alongside `<dialog>`/`<details>`/`[popover]` — one selector for "currently open" instead of a per-element state check.
+- Customizable select (`appearance: base-select` plus `::picker(select)` and friends) — Stability: Experimental, single-engine. Never generate unless explicitly requested. Until it is Baseline, `appearance: none` on a `<select>` remains discouraged for the same reason `appearance: none` is discouraged on checkboxes/radios in Native Control Color above: it strips native keyboard, focus, and `forced-colors` behavior that a full custom rebuild has to reimplement, and there is no Baseline "customize without losing the native behavior" option yet.
 
 ## Labels and Placeholder Text
 
