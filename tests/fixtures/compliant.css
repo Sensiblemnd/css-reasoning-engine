@@ -127,6 +127,38 @@
   }
 }
 
+@layer components {
+  /* Near-misses for no-layout-animation: transform/translate/opacity, the
+   * discrete display/overlay pair, and paint-only properties are allowed. */
+  .popover-fade {
+    transition:
+      opacity 200ms ease-out,
+      translate 200ms ease-out,
+      display 200ms allow-discrete,
+      overlay 200ms allow-discrete,
+      background-color 150ms ease-out;
+  }
+
+  /* Near-misses for no-invalid-supports-guard: valid, meaningful tests. */
+  @supports (position-anchor: --a) {
+    .menu {
+      position-anchor: --menu-trigger;
+    }
+  }
+
+  @supports selector(:open) {
+    .disclosure:open {
+      background: var(--color-surface-raised);
+    }
+  }
+
+  @supports (font-style: oblique 10deg) {
+    .slanted {
+      font-style: oblique 10deg;
+    }
+  }
+}
+
 @layer overrides {
   /* Third-party widget ships inline styles; documented exception. */
   .vendor-widget-root {

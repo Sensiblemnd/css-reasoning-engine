@@ -108,4 +108,41 @@
   .timed {
     transition: opacity var(--duration-s) ease-out;
   }
+
+  /* Layout properties force reflow every frame; one finding per property. */
+  /* expect: no-layout-animation, no-layout-animation */
+  .drawer {
+    transition: opacity 200ms ease-out, block-size 200ms ease-out, padding-block 200ms;
+  }
+
+  /* expect: no-layout-animation */
+  @keyframes grow {
+    from {
+      inline-size: 0;
+    }
+  }
+
+  /* at-rule() is not Baseline: drops @scope where @scope works. */
+  /* expect: no-invalid-supports-guard */
+  @supports at-rule(@scope) {
+    .scoped {
+      opacity: 1;
+    }
+  }
+
+  /* style() is not a valid @supports condition at all. */
+  /* expect: no-invalid-supports-guard */
+  @supports style(--variant: featured) {
+    .featured {
+      opacity: 1;
+    }
+  }
+
+  /* anchor-name is Baseline; the guard detects nothing. */
+  /* expect: no-invalid-supports-guard */
+  @supports (anchor-name: --a) {
+    .menu {
+      opacity: 1;
+    }
+  }
 }

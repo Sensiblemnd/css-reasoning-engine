@@ -24,10 +24,12 @@ Required token categories: color, spacing, typography scale, radius, shadow, z-i
     --space-m: 1rem;
     --radius-card: 0.75rem;
     --shadow-raised: 0 2px 8px oklch(20% 0.02 255 / 0.15);
-    --z-modal: 100;
+    --z-sticky-header: 10;
   }
 }
 ```
+
+z-index tokens are for in-flow stacking (sticky headers, overlapping cards). Modals, menus, and toasts use the top layer ([rules-interaction.md](rules-interaction.md)) and need no z-index token.
 
 Rules:
 
@@ -44,8 +46,11 @@ Priority: HIGH
 - Prefer `color-mix()` for derived states (hover, disabled, tint) over new literal values:
 
 ```css
-.button:hover {
-  background: color-mix(in oklch, var(--color-accent), black 12%);
+@layer components {
+  .button:hover {
+    /* black as a shading operand is the documented exception in prohibited-patterns.md */
+    background: color-mix(in oklch, var(--color-accent), black 12%);
+  }
 }
 ```
 

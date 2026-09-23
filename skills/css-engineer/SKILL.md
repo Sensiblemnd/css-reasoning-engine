@@ -74,7 +74,7 @@ Animation:
 - Effect is driven by scroll position (progress bar, reveal-on-scroll, parallax)? → Scroll-driven animations are Experimental (Firefox has not shipped `animation-timeline`). Do not generate unless explicitly requested; when requested, guard with `@supports (animation-timeline: view())` and ensure the unenhanced state is the *finished* state, never the starting one.
 
 Scoping:
-- Donut scope or a scoping-proximity conflict (nesting cannot express either)? → `@scope`: direct on `modern`, `@supports at-rule(@scope)`-gated on `evergreen`, unavailable on `enterprise`/`legacy` (see [rules-architecture.md](../shared/references/rules-architecture.md) @scope).
+- Donut scope or a scoping-proximity conflict (nesting cannot express either)? → `@scope`: direct on `modern`, unguarded progressive enhancement on `evergreen` (never `@supports at-rule()` — not Baseline), unavailable on `enterprise`/`legacy` (see [rules-architecture.md](../shared/references/rules-architecture.md) @scope).
 - Otherwise? → Single component class + nesting (max depth 3).
 
 Overlays:
@@ -84,6 +84,15 @@ Overlays:
 Forms:
 - Field fails constraint validation? → `:user-invalid` styling paired with the field's existing ARIA error wiring, never a JS-only error class (see [rules-forms.md](../shared/references/rules-forms.md)).
 - Native control (checkbox, radio, range) needs brand color? → `accent-color`, never a hidden-input/wrapper hack.
+
+Interaction:
+- Hover-only visual effect? → inside `@media (hover: hover)`, with the same affordance reachable via `:focus-visible` (see [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) Pointer and Touch).
+- Interactive target? → at least `--size-target-min` (24×24 CSS px) in both axes.
+- Sticky/fixed header or bottom bar? → `scroll-padding-block-*` on the scroller so focused elements aren't hidden under it.
+
+Existing project CSS:
+- Project already declares a layer order (framework or house convention)? → adopt it and map roles onto it; never re-declare the seven-layer order (see [rules-architecture.md](../shared/references/rules-architecture.md) Existing Layer Architecture).
+- Third-party stylesheet? → import it into `components.vendor` (or `reset` for normalizers), never leave it unlayered.
 
 Print:
 - Context is explicitly print/email/fixed-size? → apply the Print baseline ([rules-layout.md](../shared/references/rules-layout.md)) instead of the responsive baseline above.
@@ -96,7 +105,7 @@ Print:
   ```css
   @layer reset, tokens, base, layout, components, utilities, overrides;
   ```
-  Never generate unlayered CSS unless explicitly requested.
+  Never generate unlayered CSS unless explicitly requested. Exception: a project that already declares its own layer order keeps it (see Decision Engine → Existing project CSS).
 - Required: tokens (custom properties in the `tokens` layer) for color, spacing, typography scale, radius, shadow, and z-index. Never hardcode these values in components.
 - Required: logical properties (`margin-inline`, `padding-block`, `inline-size`, `block-size`, `inset-inline`) instead of physical ones (`margin-left`, `width`, `top`). Exception: physical viewport effects that must not flip with writing mode.
 - Required: layouts are responsive by default (see [rules-layout.md](../shared/references/rules-layout.md) Responsive Layout Baseline) — fluid sizing, and media/container queries where the resize reason demands them, unless the task is explicitly scoped to a fixed-size context.
@@ -154,7 +163,8 @@ Typography & Color:
 - [ ] Colors from semantic tokens; OKLCH for definitions; `light-dark()` for schemes
 
 Accessibility:
-- [ ] `:focus-visible` styles present; no removed focus indicators
+- [ ] `:focus-visible` styles present; no removed focus indicators; sticky bars offset with `scroll-padding`
+- [ ] Hover-only effects inside `@media (hover: hover)`; targets ≥ 24×24 CSS px
 - [ ] Animations guarded by `prefers-reduced-motion`
 - [ ] Every custom property named in a `transition` or set in `@keyframes` has an `@property` registration with an `initial-value`
 - [ ] Contrast meets WCAG AA; `prefers-contrast: more` strengthens subtle borders/placeholders; `forced-colors` not broken; zoom not blocked

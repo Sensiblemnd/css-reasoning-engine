@@ -174,11 +174,11 @@ Rules:
 
 ### Container Style Queries — Stability: Emerging
 
-Priority: MEDIUM — direct on `modern`; unguarded progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+Priority: MEDIUM — direct on `modern`; unguarded progressive enhancement on `evergreen` (capability `optional*` — see [browser-profiles.md](browser-profiles.md)); unavailable on `enterprise`/`legacy`.
 
 `@container style(--variant: featured)` queries a container's own custom-property value rather than its size — use it when a component has a token-driven variant (a `--variant` or `--density` custom property set by the page) that should change several descendant declarations at once. It is not a replacement for a modifier class where a class reads better: a one-off visual difference (`.card--featured`) stays a class; a variant that composes with container size queries, or that a parent sets without the component's own markup knowing about it, is what style queries are for.
 
-Never wrap a style query in `@supports`. There is no valid `@supports` test for it — `@supports` accepts a declaration test, `selector()`, `font-tech()`, or `font-format()` and nothing else, so `@supports style(...)` is an unrecognized condition that evaluates false and drops the block in *every* engine, including ones where style queries work. Required instead: an unsupported engine simply ignores the `@container style()` block, so the un-queried state must be a usable default on its own. That is the progressive-enhancement contract for this feature on `evergreen` — carried by the base rule, not by a guard.
+Never wrap a style query in `@supports`. There is no valid `@supports` test for it — `@supports` accepts a declaration test, `selector()`, `font-tech()`, `font-format()`, and the not-yet-Baseline `at-rule()`/`named-feature()`, none of which can express a style query, so `@supports style(...)` is an unrecognized condition that evaluates false and drops the block in *every* engine, including ones where style queries work. Required instead: an unsupported engine simply ignores the `@container style()` block, so the un-queried state must be a usable default on its own. That is the progressive-enhancement contract for this feature on `evergreen` — carried by the base rule, not by a guard.
 
 ```css
 @layer components {

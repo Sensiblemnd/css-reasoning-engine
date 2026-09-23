@@ -2,7 +2,7 @@
 
 ## @property — Stability: Stable
 
-Priority: MEDIUM
+Priority: MEDIUM — direct on `modern`/`evergreen`; capability `false` on `enterprise`/`legacy` (not yet Baseline widely available). Where it is `false`, never transition or animate a custom property — transition the concrete property it feeds instead (`background-color`, `transform`), since the unregistered transition would snap.
 
 ### When to register
 
@@ -85,19 +85,31 @@ Priority: MEDIUM
 - Required for entry animations of elements arriving via `display: none` → visible, `popover`, or `dialog`. Never JavaScript class-juggling for this.
 
 ```css
-@media (prefers-reduced-motion: no-preference) {
-  [popover]:popover-open {
-    opacity: 1;
-    transition: opacity 200ms ease-out, display 200ms allow-discrete;
-
-    @starting-style {
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .menu {
+      /* closed state = exit target; transition lives here so closing animates too */
       opacity: 0;
+      transition:
+        opacity 200ms ease-out,
+        display 200ms allow-discrete,
+        overlay 200ms allow-discrete;
+
+      &:popover-open {
+        opacity: 1;
+
+        @starting-style {
+          opacity: 0;
+        }
+      }
     }
   }
 }
 ```
 
-- Required: pair with `transition-behavior: allow-discrete` when transitioning `display` or `overlay`.
+- Required: pair with `transition-behavior: allow-discrete` when transitioning `display` or `overlay`. Top-layer elements (`[popover]`, modal `<dialog>`) must transition **both** — without `overlay`, the element leaves the top layer instantly and the exit animation is clipped behind other content.
+- Required: put the transition on the base (closed) rule, not only the open-state rule. A transition declared only on `:popover-open`/`[open]` stops applying the moment the state is removed, so only the entry animates.
+- Placing the reduced-motion guard around the base rule, as above, means `no-preference` users get the fade and everyone else gets an instant toggle — the closed state is still `display: none` from the UA stylesheet, so `opacity: 0` never hides an open element.
 
 ## Scroll-Driven Animations — Stability: Experimental
 
@@ -282,5 +294,5 @@ Rules:
 
 Never generate unless explicitly requested. When requested:
 
-- Required: an `@supports (result: if(else: true))`-style capability guard or a documented statement that the project targets engines shipping `@function`.
+- Required: a comment at the use site stating that the project targets engines shipping `@function`. There is no valid `@supports` test for it — `result` is only a descriptor inside `@function`, not a property, so `@supports (result: …)` is always false, and `at-rule(@function)` is not Baseline.
 - Required: a working non-function fallback value in the same rule.

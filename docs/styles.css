@@ -216,7 +216,7 @@
       overflow: hidden;
 
       @media (prefers-reduced-motion: no-preference) {
-        transition: grid-template-rows 200ms ease-out, padding-block 200ms ease-out;
+        transition: grid-template-rows 200ms ease-out;
       }
     }
 
@@ -305,6 +305,7 @@
     &::after {
       content: "";
       position: absolute;
+      inset-block-start: 0;
       inset-inline-start: 0;
       inline-size: 1.25rem;
       block-size: 2px;
@@ -312,12 +313,13 @@
       border-radius: 1px;
     }
 
+    /* translate, not inset-block-start: the bars move without triggering layout */
     &::before {
-      inset-block-start: -0.375rem;
+      translate: 0 -0.375rem;
     }
 
     &::after {
-      inset-block-start: 0.375rem;
+      translate: 0 0.375rem;
     }
 
     @media (prefers-reduced-motion: no-preference) {
@@ -325,7 +327,7 @@
 
       &::before,
       &::after {
-        transition: transform 150ms ease-out, inset-block-start 150ms ease-out;
+        transition: transform 150ms ease-out, translate 150ms ease-out;
       }
     }
   }
@@ -334,12 +336,12 @@
     background: transparent;
 
     &::before {
-      inset-block-start: 0;
+      translate: 0 0;
       transform: rotate(45deg);
     }
 
     &::after {
-      inset-block-start: 0;
+      translate: 0 0;
       transform: rotate(-45deg);
     }
   }

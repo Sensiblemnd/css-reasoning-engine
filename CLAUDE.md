@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of Claude Agent Skills that give AI coding assistants CSS engineering judgment. The skills are deterministic rule systems (closer to an ESLint config or an architecture RFC than a tutorial), not example code to imitate. There is no build step — the repository's output *is* the skill definitions plus a static marketing/docs site.
 
-There is a test suite: `./tests/run.sh` self-tests the rule linter and then gates `docs/styles.css` against it. It is zero-dependency (Node, no `package.json`, no install). Run it after changing `docs/styles.css` or `tests/`. See `tests/README.md`.
+There is a test suite: `./tests/run.sh` self-tests the rule linter and then gates `docs/styles.css` and every ```` ```css ```` example inside `skills/**/*.md` against it. It is zero-dependency (Node, no `package.json`, no install). Run it after changing `docs/styles.css`, `tests/`, or any code example in a skill file. Anti-examples must sit under an `Avoid:` / `Never:` / `Before:` line (or `<!-- lint-skip: reason -->`) or the suite fails. See `tests/README.md`.
 
 ## Working conventions
 
@@ -24,8 +24,9 @@ skills/
 │   ├── rules-architecture.md    # cascade layers, imports, component boundaries, specificity, nesting, @scope
 │   ├── rules-layout.md          # Grid/Flexbox, logical properties, container queries, viewport units
 │   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), clamp(), text-wrap
-│   ├── rules-a11y-performance.md # focus, motion, contrast, forced-colors, containment, animation cost
+│   ├── rules-a11y-performance.md # focus, pointer/touch, motion, contrast, forced-colors, containment, animation cost
 │   ├── rules-forms.md           # validation states, native control color, labels/placeholder
+│   ├── rules-interaction.md     # scroll snap, overlays/top layer, :open, ::details-content, scroll-state, carousels
 │   └── rules-advanced.md        # @property, @starting-style, scroll-driven animations, View Transitions, Anchor Positioning
 ├── css-engineer/SKILL.md  # role: generate new CSS
 ├── css-reviewer/SKILL.md  # role: audit existing CSS, report structured findings, never rewrite
@@ -34,7 +35,7 @@ docs/           # static GitHub Pages site (index.html + styles.css), no build s
 planning/       # original project briefs, not part of the published site
 tests/          # zero-dependency linter for the mechanically checkable rules
 ├── lint.mjs        # rule engine + CLI (--self-test, --list-rules)
-├── run.sh          # self-test, then gate repo stylesheets
+├── run.sh          # self-test, then gate repo stylesheets and skill examples
 └── fixtures/       # compliant.css (must be clean) + violations.css (annotated)
 ```
 

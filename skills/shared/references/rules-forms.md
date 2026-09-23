@@ -83,7 +83,7 @@ Required: `field-sizing: content` for a `<textarea>` or `<input>` that should gr
 
 Priority: LOW
 
-- `:open` ([rules-interaction.md](rules-interaction.md), Stability: Emerging) matches a `<select>` while its picker is showing, alongside `<dialog>`/`<details>`/`[popover]` — one selector for "currently open" instead of a per-element state check.
+- `:open` ([rules-interaction.md](rules-interaction.md), Stability: Emerging) matches a `<select>` or picker `<input>` (color, date) while its picker is showing, alongside an open `<dialog>`/`<details>` — one selector for "currently open" instead of a per-element state check. It does not match popovers; those use `:popover-open`.
 - Customizable select (`appearance: base-select` plus `::picker(select)` and friends) — Stability: Experimental, single-engine. Never generate unless explicitly requested. Until it is Baseline, `appearance: none` on a `<select>` remains discouraged for the same reason `appearance: none` is discouraged on checkboxes/radios in Native Control Color above: it strips native keyboard, focus, and `forced-colors` behavior that a full custom rebuild has to reimplement, and there is no Baseline "customize without losing the native behavior" option yet.
 
 ## Labels and Placeholder Text

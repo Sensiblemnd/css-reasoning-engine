@@ -12,7 +12,7 @@ Priority: MEDIUM
 @layer components {
   .gallery {
     display: flex;
-    overflow-inline: auto;
+    overflow: auto; /* overflow-inline is still Emerging — see browser-profiles.md */
     scroll-snap-type: inline mandatory;
     scroll-padding-inline-start: var(--space-header-offset);
     gap: var(--space-m);
@@ -56,24 +56,20 @@ Required: `<dialog>` (`.showModal()`) or `[popover]` — Stability: Stable — f
 
 The top layer is why this matters architecturally, not just semantically: an element promoted to it (every `<dialog>` while modal, every `[popover]` while showing) paints above the entire document regardless of any `z-index` set anywhere else in the page. This makes the "z-index war" structurally impossible instead of merely discouraged — nobody has to know or prove what the current highest `z-index` is, because there is no ceiling to out-bid.
 
+Element-level overlay defaults live in `base` with zero specificity; component classes (`.modal`, `.menu`) layer their specifics on top in `components`.
+
 ```css
-@layer components {
-  dialog {
-    border: none;
-    border-radius: var(--radius-card);
-    padding-inline: var(--space-l);
-    padding-block: var(--space-m);
-  }
-
-  dialog::backdrop {
-    background: var(--color-scrim);
-  }
-
-  [popover] {
-    border: none;
+@layer base {
+  :where(dialog, [popover]) {
+    /* transparent, not none: the border becomes the visible edge in forced-colors mode */
+    border: var(--border-width-thin) solid transparent;
     border-radius: var(--radius-card);
     padding-inline: var(--space-m);
     padding-block: var(--space-s);
+  }
+
+  :where(dialog)::backdrop {
+    background: var(--color-scrim);
   }
 }
 ```
@@ -91,13 +87,13 @@ Rules:
 
 - Required: `::backdrop` for the dimming layer behind a modal `<dialog>`. Never a sibling `.overlay` element with manual `position: fixed` and `z-index` standing in for it.
 - Required: `[popover]` (not a `role="dialog"` div with hand-wired listeners) for transient UI — menus, tooltips, toasts — that should light-dismiss on outside click, `Escape`, or opening another popover. That behavior is native to the top layer and popover semantics; reimplementing it in JS reproduces the same edge cases (focus trap, nested-popover close order) the platform already solved.
-- Prefer `:open` — Stability: Emerging, direct on `modern`, `@supports`-gated on `evergreen` — to style any element currently in its open state (a shown `<dialog>`, an expanded `<details>`, a showing `[popover]`) with one selector, instead of three separate mechanisms (`:popover-open`, `[open]`, a dialog-specific check).
+- Prefer `:open` — Stability: Emerging, direct on `modern`, `@supports`-gated on `evergreen` — for the open state of `<details>`, `<dialog>`, `<select>`, and `<input>` pickers, instead of the `[open]` attribute selector (which cannot see a `<select>` or picker at all). `:open` does **not** match popovers: a showing `[popover]` is `:popover-open`, a separate state. Always anchor `:open` to a component selector, never bare.
 
 ```css
 @supports selector(:open) {
   @layer components {
-    :open {
-      accent-color: var(--color-accent);
+    .disclosure:open {
+      background: var(--color-surface-raised);
     }
   }
 }
@@ -110,15 +106,22 @@ Rules:
 
 Priority: LOW — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
 
-Required: `::details-content` to animate a `<details>` disclosure open/closed, instead of a JS height-measurement hack (`scrollHeight` read into an inline style right before transitioning). The JS version fails a specific, hard-to-reproduce way: it measures before a web font swaps or an image finishes loading, then animates to a height that's already stale, producing a visible snap at the end of the transition. `::details-content` animates the actual box, so it can't be stale.
+`::details-content` targets the collapsible part of a `<details>` element, so the disclosure's content can be styled and faded without a wrapper element.
+
+- Prefer an opacity/transform reveal on `::details-content` over animating its height. Animating `block-size` is a layout-property animation (prohibited — see [rules-a11y-performance.md](rules-a11y-performance.md) Animation Cost), and it cannot reach `auto` anyway without `interpolate-size`/`calc-size()`, which are Experimental. Without them a `block-size` transition snaps instead of animating.
+- A height-animated disclosure is therefore **not** a Stable-CSS replacement for a JS height-measurement hack. Leave existing JS height animation in place (reviewer: not a finding; refactorer: skip) unless the project has explicitly opted into `interpolate-size`.
 
 ```css
 @supports selector(::details-content) {
   @media (prefers-reduced-motion: no-preference) {
     @layer components {
-      ::details-content {
-        overflow: hidden;
-        transition: block-size 200ms ease-out, content-visibility 200ms allow-discrete;
+      .disclosure::details-content {
+        opacity: 0;
+        transition: opacity 200ms ease-out, content-visibility 200ms allow-discrete;
+      }
+
+      .disclosure:where([open])::details-content {
+        opacity: 1;
       }
     }
   }

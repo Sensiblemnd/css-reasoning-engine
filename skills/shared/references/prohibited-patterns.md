@@ -15,7 +15,7 @@ Never generate, accept, or leave in place:
 - `!important` — Exception: overriding third-party inline styles, in the `overrides` layer only, with a comment.
 - ID selectors for styling. Exception: an id referenced because the *platform* keys behavior to it, not to raise specificity — `:has(#section:target)`, where `:target` is defined against the URL fragment and no class can express it. A styling hook that happens to be an id is not covered: if the element also carries a class, match the class (`:has(.nav-toggle-input:checked)`, never `:has(#nav-toggle:checked)`).
 - Inline `style` attributes.
-- Hardcoded colors in components (hex, `rgb()`, named colors) — semantic tokens only.
+- Hardcoded colors in components (hex, `rgb()`, named colors) — semantic tokens only. Exception: `black`/`white` as the mixing operand of `color-mix()` that shades or tints a token (`color-mix(in oklch, var(--color-accent), black 12%)`) — the result is still derived from the token, not a new design color. Any other literal operand is a violation.
 - Hardcoded spacing / magic numbers — semantic tokens only.
 - `transition: all`.
 - Sass/Less syntax in native CSS (`$vars`, `@mixin`, `@extend`, `&-suffix` concatenation).

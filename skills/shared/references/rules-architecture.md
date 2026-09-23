@@ -28,6 +28,32 @@ Rules:
 - Never re-declare the layer order in another file; `@layer components { }` blocks append, order stays fixed.
 - Never fight layer order with specificity — move the rule to the correct layer instead.
 
+### Existing Layer Architecture
+
+Priority: HIGH
+
+- Required: if the project already declares a layer order (a framework such as Tailwind v4's `@layer theme, base, components, utilities`, or a house convention), adopt it. Never prepend or re-declare the seven-layer order on top of it. Map roles onto the existing names (`theme` → `tokens`; missing `layout`/`overrides` → nested layers such as `components.layout`, or a single appended layer declared once alongside the existing order) and state the mapping once.
+- The seven-layer order is the default for projects with no layer declaration, not a replacement for one that works.
+
+### Third-Party CSS
+
+Priority: HIGH
+
+- Required: import every third-party stylesheet into a layer. Unlayered CSS beats all layered CSS regardless of specificity, so a single unlayered vendor file silently overrides the whole design system.
+- Required: import third-party component CSS into `components.vendor`, declared before any other `components` sub-layer. Rules written directly in `components` beat every nested sub-layer, so project components and utilities win over vendor styles without specificity hacks. Third-party resets/normalizers go in `reset`.
+- Where a vendor stylesheet cannot be imported (injected by a script at runtime), document that at the use site; its rules are unlayered and will win — fix conflicts in the vendor's configuration, not by escalating specificity.
+
+```css
+@layer reset, tokens, base, layout, components, utilities, overrides;
+@layer components.vendor;
+
+@import url("vendor/datepicker.css") layer(components.vendor);
+```
+
+### `!important` Reverses Layer Order
+
+- `!important` declarations cascade in **reverse** layer order: an important declaration in `reset` beats an important declaration in `overrides`. This is why the `overrides`-layer `!important` exception ([prohibited-patterns.md](prohibited-patterns.md)) only works against third-party *inline* styles and unlayered `!important` code — never use `!important` to win against another layer of this project.
+
 ### Nested Layers
 
 Priority: MEDIUM
@@ -84,7 +110,7 @@ Rules:
 
 ```css
 @import url("components/card-anchored.css") layer(components) supports(position-anchor: --a);
-@import url("print.css") layer(overrides) screen and (width < 60rem);
+@import url("print.css") layer(overrides) print;
 ```
 
 ## Component Boundaries
@@ -170,7 +196,9 @@ Never:
 
 ## @scope — Stability: Emerging
 
-Priority: MEDIUM — direct on `modern` (capability `true`); `@supports at-rule(@scope)`-gated progressive enhancement on `evergreen` (capability `optional`); unavailable on `enterprise`/`legacy` (capability `false`) — see [browser-profiles.md](browser-profiles.md).
+Priority: MEDIUM — direct on `modern` (capability `true`); unguarded progressive enhancement on `evergreen` (capability `optional*`); unavailable on `enterprise`/`legacy` (capability `false`) — see [browser-profiles.md](browser-profiles.md).
+
+Never wrap `@scope` in `@supports at-rule(@scope)`: `at-rule()` is not Baseline, so the guard drops the block in engines that support `@scope`. An engine without `@scope` drops the block by itself. On `evergreen`, keep an unscoped rule at equal or lower specificity (`:where(.card) a`) as the usable default, and let the scoped rule win by proximity where supported.
 
 Prefer a component root class with nesting whenever nesting can express the relationship. Reach for `@scope` only when nesting cannot: a donut scope, or a genuine scoping-proximity conflict (below). `@scope` is a scoping tool, not a specificity tool — never reach for it to win a cascade fight.
 
@@ -181,12 +209,10 @@ When two scoped rule blocks of equal specificity both match the same element, th
 Concretely: a `.card` nested inside another `.card` (a featured card wrapping a related item, a comment nesting a reply) has two candidate rules for its own `a` — the outer card's and the inner card's — at identical specificity. Without `@scope`, source order decides, so the wrong rule can win depending on write order, and fixing it means adding a modifier class to every nested instance. With `@scope`, the inner card's `@scope (.card)` root is nearer to its own `a`, so the inner rule wins regardless of source order — the conflict resolves structurally instead of by convention.
 
 ```css
-@supports at-rule(@scope) {
-  @layer components {
-    @scope (.card) {
-      a {
-        color: var(--color-link-on-surface);
-      }
+@layer components {
+  @scope (.card) {
+    a {
+      color: var(--color-link-on-surface);
     }
   }
 }
@@ -197,12 +223,10 @@ Concretely: a `.card` nested inside another `.card` (a featured card wrapping a 
 Donut scope — style everything between a root and a lower boundary, excluding the boundary element's own subtree:
 
 ```css
-@supports at-rule(@scope) {
-  @layer components {
-    @scope (.card) to (.card-slot) {
-      a {
-        color: var(--color-link-on-surface);
-      }
+@layer components {
+  @scope (.card) to (.card-slot) {
+    a {
+      color: var(--color-link-on-surface);
     }
   }
 }

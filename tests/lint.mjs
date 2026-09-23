@@ -223,6 +223,17 @@ const ALLOWED_PREFIXES = [
   "-webkit-overflow-scrolling", "-webkit-line-clamp", "-webkit-box-orient",
 ];
 
+// Properties whose animation forces layout on every frame.
+const LAYOUT_PROPS = new RegExp(
+  "^(" + [
+    "(min-|max-)?(width|height|inline-size|block-size)",
+    "top", "right", "bottom", "left", "inset(-(block|inline)(-(start|end))?)?",
+    "(margin|padding)(-(top|right|bottom|left|block|inline)(-(start|end))?)?",
+    "font-size",
+  ].join("|") + ")$",
+  "i",
+);
+
 const COLOR_FN = /\b(rgba?|hsla?)\s*\(/i;
 const HEX = /#[0-9a-f]{3,8}\b/i;
 
@@ -494,6 +505,50 @@ const RULES = [
       }
     },
   },
+  {
+    id: "no-layout-animation",
+    doc: "rules-a11y-performance.md — never transition or animate layout properties",
+    check(node, ctx, report) {
+      if (node.type !== "decl") return;
+      const prop = node.prop.toLowerCase();
+
+      if (prop === "transition" || prop === "transition-property") {
+        for (const segment of splitSelectors(node.value)) {
+          // transition: the property is the first token of each segment;
+          // transition-property: each segment is a property name.
+          const name = segment.trim().split(/\s+/)[0].toLowerCase();
+          if (LAYOUT_PROPS.test(name)) {
+            report(node.line, `Transitions layout property \`${name}\`; animate transform/opacity instead.`);
+          }
+        }
+        return;
+      }
+
+      if (ctx.atrules.includes("keyframes") && LAYOUT_PROPS.test(prop)) {
+        report(node.line, `@keyframes animates layout property \`${prop}\`; animate transform/opacity instead.`);
+      }
+    },
+  },
+  {
+    id: "no-invalid-supports-guard",
+    doc: "browser-profiles.md — @supports tests that are invalid or detect nothing",
+    check(node, ctx, report) {
+      if (node.type !== "atrule" || node.name !== "supports") return;
+      const p = node.prelude;
+      if (/\bat-rule\s*\(/i.test(p)) {
+        report(node.line, "`at-rule()` is not Baseline; the guard drops the block in engines that support the at-rule.");
+      }
+      if (/(^|[\s(])style\s*\(/i.test(p)) {
+        report(node.line, "`style()` is not a valid @supports test; the block is dropped in every engine.");
+      }
+      if (/\(\s*result\s*:/i.test(p)) {
+        report(node.line, "`result` is an @function descriptor, not a property; this test is always false.");
+      }
+      if (/\(\s*anchor-name\s*:/i.test(p)) {
+        report(node.line, "`anchor-name` is Baseline and detects nothing; guard on `position-anchor`.");
+      }
+    },
+  },
 ];
 
 const RULE_IDS = new Set(RULES.map((r) => r.id));
@@ -555,22 +610,93 @@ function lintParsed(parsed, filename, registered) {
   return { findings, annotations };
 }
 
+// ---------------------------------------------------------------- markdown
+
+// Pull every ```css block out of a Markdown file. The reference files teach by
+// example, and an AI copies examples more faithfully than prose, so a broken
+// "Preferred" block is a rule violation in the most-copied place.
+//
+// Skipped (anti-examples, meant to violate):
+//   - a block whose preceding non-blank line starts with "Avoid", "Never", or
+//     "Before" (the input half of a refactor before/after pair)
+//   - a block preceded by <!-- lint-skip: reason -->
+function extractCssBlocks(md) {
+  const lines = md.split("\n");
+  const blocks = [];
+  let prev = "";
+  for (let k = 0; k < lines.length; k++) {
+    const open = lines[k].match(/^(\s*)```css\s*$/);
+    if (!open) {
+      if (lines[k].trim()) prev = lines[k].trim();
+      continue;
+    }
+    const indent = open[1].length;
+    const body = [];
+    let j = k + 1;
+    while (j < lines.length && !/^\s*```\s*$/.test(lines[j])) {
+      body.push(lines[j].slice(Math.min(indent, lines[j].search(/\S|$/))));
+      j++;
+    }
+    const skip = /^(Avoid|Never|Before)\b/i.test(prev) || /^<!--\s*lint-skip\b/i.test(prev);
+    blocks.push({ line: k + 2, code: body.join("\n"), skip });
+    prev = "";
+    k = j;
+  }
+  return blocks;
+}
+
+// Each block is linted as its own stylesheet, and findings are mapped back to
+// the Markdown line. Blocks are fragments, so two rules are relaxed for them:
+//   - no-unlayered: examples routinely omit the @layer wrapper to stay short.
+//     The css-engineer skill states that emitted CSS must still be layered.
+//   - unregistered-animated-property: registrations are collected across all
+//     blocks in the run, as they are across files for stylesheets.
+const EXAMPLE_EXEMPT = new Set(["no-unlayered"]);
+
+function readSources(paths) {
+  const out = [];
+  for (const path of paths) {
+    const name = relative(REPO, path) || path;
+    const src = readFileSync(path, "utf8");
+    if (!path.endsWith(".md")) {
+      out.push({ path, name, src, offset: 0, example: false });
+      continue;
+    }
+    for (const block of extractCssBlocks(src)) {
+      if (block.skip) continue;
+      out.push({ path, name, src: block.code, offset: block.line - 1, example: true });
+    }
+  }
+  return out;
+}
+
 // Two passes: collect @property registrations across every file first, then
 // lint. A component file's registrations often live in a separate tokens file.
 function lintFiles(paths) {
-  const parsed = paths.map((path) => ({
-    path,
-    name: relative(REPO, path) || path,
-    tree: parseStylesheet(readFileSync(path, "utf8")),
+  const parsed = readSources(paths).map((entry) => ({
+    ...entry,
+    tree: parseStylesheet(entry.src),
   }));
 
   const registered = new Set();
   for (const entry of parsed) collectRegistrations(entry.tree.nodes, registered);
 
-  return parsed.map((entry) => ({
-    ...entry,
-    ...lintParsed(entry.tree, entry.name, registered),
-  }));
+  // Markdown blocks from one file are merged back into one result per file.
+  const byName = new Map();
+  for (const entry of parsed) {
+    const { findings, annotations } = lintParsed(entry.tree, entry.name, registered);
+    const kept = findings
+      .filter((f) => !(entry.example && EXAMPLE_EXEMPT.has(f.ruleId)))
+      .map((f) => ({ ...f, line: f.line + entry.offset }));
+    const result = byName.get(entry.name) ?? { path: entry.path, name: entry.name, findings: [], annotations: [] };
+    result.findings.push(...kept);
+    result.annotations.push(...annotations);
+    byName.set(entry.name, result);
+  }
+  for (const result of byName.values()) {
+    result.findings.sort((a, b) => a.line - b.line || a.ruleId.localeCompare(b.ruleId));
+  }
+  return [...byName.values()];
 }
 
 function lintFile(path) {
@@ -647,6 +773,23 @@ function selfTest() {
     problems.forEach((p) => console.log(p));
     console.log(dim("\n  actual findings:"));
     printFindings(findings);
+  }
+
+  // Markdown extraction: anti-examples skipped, fragments exempt from
+  // no-unlayered, annotated Preferred violation still caught.
+  const examplesPath = join(HERE, "fixtures", "examples.md");
+  const ex = lintFile(examplesPath);
+  const exProblems = diffCounts(
+    counted(ex.annotations.flatMap((a) => a.ids)),
+    counted(ex.findings.map((f) => f.ruleId)),
+  );
+  if (exProblems.length === 0) {
+    console.log(`${green("pass")}  examples.md extraction matched expectations`);
+  } else {
+    failed = true;
+    console.log(`${red("FAIL")}  examples.md extraction did not match:`);
+    exProblems.forEach((p) => console.log(p));
+    printFindings(ex.findings);
   }
 
   const covered = new Set(annotations.flatMap((a) => a.ids));

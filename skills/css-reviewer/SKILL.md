@@ -35,7 +35,7 @@ Required order:
    node tests/lint.mjs <files>
    ```
 
-   Treat its output as a floor, not a verdict. It covers 16 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
+   Treat its output as a floor, not a verdict. It covers 18 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
 5. Audit the four categories below.
 6. Emit findings in the Required output format, ordered by severity.
 
@@ -49,6 +49,8 @@ Check for:
 - Duplicate styles that an existing token, utility, or component already provides
 - Poor component boundaries (cross-component descendant selectors, global tag styling in components)
 - Missing tokens (hardcoded colors, spacing, radius, shadow, z-index)
+- Third-party stylesheets left unlayered (they beat every layered rule), or a second layer order declared on top of the project's existing one (framework or house convention)
+- `!important` used to win against another layer of the project — important declarations cascade in reverse layer order, so this inverts the intended precedence
 
 ## Modern CSS
 
@@ -73,7 +75,8 @@ Check for:
 - Overlay content (modal, menu, toast, combobox) built from `position: fixed` plus a hand-maintained `z-index` instead of `<dialog>`/`[popover]` and the top layer
 - A JS scroll listener recalculating styles every frame — **only** where the project has explicitly opted into scroll-driven animations or `@container scroll-state()`. Both are Experimental (Firefox has shipped neither), so on a default profile the scroll listener is correct and reporting it is a false finding
 - Scroll-driven animations or anchor positioning emitted with no `@supports` guard on `evergreen` or below, or guarded on the wrong property (`anchor-name` instead of `position-anchor`) — a guard that passes where the feature does not work is worse than none
-- A JS height-measurement hack animating a `<details>` disclosure where `::details-content` applies — **only** on a profile where `details_content` is `true`/`optional`
+- `@scope` wrapped in `@supports at-rule(@scope)` — `at-rule()` is not Baseline, so the guard drops the block in engines that support `@scope`
+- `::details-content` (or any disclosure) animating `block-size`/`height` — a layout-property animation that also cannot reach `auto` without Experimental `interpolate-size`. A JS height-animation hack on `<details>` is **not** a finding: no Stable CSS replaces it
 - A custom property transitioned or set in `@keyframes` with no `@property` registration — severity `high`, this is a silent functional bug (the transition does nothing) rather than a style issue. Also flag a registration missing `initial-value` for a non-`*` syntax, which is dropped silently and fails the same way
 - A JavaScript positioning library for an anchored overlay on a profile where `anchor_positioning` is `true`/`optional`
 
@@ -89,6 +92,9 @@ Check for:
 - Zoom blocking, `px`-locked font sizes
 - Form validation styled only via JS-toggled classes where `:user-valid`/`:user-invalid` would work natively, or validation styling with no matching ARIA wiring
 - `::placeholder` used as the only labeling mechanism, or placeholder text failing contrast requirements
+- Hover effects not wrapped in `@media (hover: hover)` (sticky hover on touch), or information/controls reachable only on hover
+- Interactive targets below 24×24 CSS px (WCAG 2.5.8)
+- Sticky/fixed header or bottom bar with no matching `scroll-padding`, so focused elements scroll underneath it (WCAG 2.4.11)
 
 ## Performance
 

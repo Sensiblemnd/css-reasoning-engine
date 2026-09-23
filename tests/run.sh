@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Test suite for the css-skills rule linter.
 #
-#   ./tests/run.sh          self-test the linter, then gate docs/styles.css
+#   ./tests/run.sh          self-test the linter, then gate docs/styles.css and
+#                           the css examples inside the skill files
 #   ./tests/run.sh --fast   self-test only
 #
 # Exits non-zero if the linter regresses or if repo CSS violates the rules.
@@ -24,6 +25,16 @@ fi
 echo
 echo "== repo stylesheets =="
 if node tests/lint.mjs docs/styles.css; then
+  :
+else
+  status=1
+fi
+
+echo
+echo "== reference examples =="
+# css blocks inside the skill files. "Avoid:"/"Never:"/"Before:" blocks and
+# <!-- lint-skip --> blocks are anti-examples and are skipped.
+if node tests/lint.mjs skills/shared/references/*.md skills/*/SKILL.md; then
   :
 else
   status=1

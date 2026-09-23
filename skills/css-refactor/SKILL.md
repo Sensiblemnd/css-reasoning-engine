@@ -23,14 +23,18 @@ Apply per category; topic rules live in the routed reference file.
 
 ## Literals → Semantic tokens ([rules-color-typography.md](../shared/references/rules-color-typography.md))
 
+Before:
+
 ```css
-/* Before */
 .button {
   margin-left: 20px;
   color: #333;
 }
+```
 
-/* After */
+After:
+
+```css
 .button {
   margin-inline-start: var(--space-m);
   color: var(--color-text);
@@ -63,7 +67,8 @@ Apply per category; topic rules live in the routed reference file.
 
 ## Unlayered → Layered ([rules-architecture.md](../shared/references/rules-architecture.md))
 
-- Move rules into the standard order: `reset, tokens, base, layout, components, utilities, overrides`.
+- Move rules into the standard order: `reset, tokens, base, layout, components, utilities, overrides` — or, if the project already declares a layer order (framework or house convention), into that order; never add a second one.
+- Unlayered third-party stylesheets currently beat all layered rules. Moving them into `components.vendor` flips every conflict with project styles, so it is `follow-up` unless each conflict is proven to resolve the same way.
 - Required verification: layering changes cascade order — unlayered CSS beats layered CSS. Migrate ALL competing rules in the same pass, and re-check every override relationship (later-file overrides, specificity-based overrides) still resolves the same way. If any rule set cannot migrate yet, do not layer its competitors.
 
 ## Specificity reduction ([rules-architecture.md](../shared/references/rules-architecture.md))

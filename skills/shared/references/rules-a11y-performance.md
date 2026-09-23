@@ -13,9 +13,9 @@ Preferred:
 
 ```css
 @layer base {
-  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 2px;
+  :where(a, button, input, select, textarea, summary, [tabindex], [contenteditable]):focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
   }
 }
 ```
@@ -25,6 +25,41 @@ Avoid:
 ```css
 button:focus {
   outline: none;
+}
+```
+
+#### Focus Not Obscured (WCAG 2.4.11)
+
+- Required: when the layout has a sticky/fixed header or bottom bar, set `scroll-padding-block-start` (and `-end` for bottom bars) on the scroll container (usually `:root`) to the bar's size token, so keyboard focus and in-page anchor jumps never land underneath it.
+
+```css
+@layer base {
+  :root {
+    scroll-padding-block-start: var(--size-header);
+  }
+}
+```
+
+### Pointer and Touch
+
+Priority: HIGH
+
+- Required: hover-only visual effects (lift, reveal, color shift) go inside `@media (hover: hover)`. On touch screens `:hover` sticks after a tap, leaving the element in its hover state. Never put information or controls behind hover alone — they must also be reachable via focus (`:focus-visible`, `:focus-within`) and on touch.
+- Required: interactive targets are at least 24×24 CSS px (WCAG 2.5.8), via a `--size-target-min` token applied as `min-block-size`/`min-inline-size` (or padding that reaches it). Prefer 44×44 (`--size-target-comfortable`) for primary touch controls.
+- Prefer `@media (pointer: coarse)` to enlarge targets or spacing for touch input, instead of viewport-width breakpoints (a narrow window is not a touch screen, and tablets are wide).
+
+```css
+@layer components {
+  .icon-button {
+    min-block-size: var(--size-target-min);
+    min-inline-size: var(--size-target-min);
+  }
+
+  @media (hover: hover) {
+    .card:hover {
+      box-shadow: var(--shadow-raised);
+    }
+  }
 }
 ```
 
@@ -93,7 +128,22 @@ Priority: MEDIUM
 - Never use CSS to fake semantics (a styled `div` where `button` belongs). Flag the HTML instead.
 - Never reorder meaningfully with `order` / `flex-direction: *-reverse` when the visual order must match focus/reading order.
 - `reading-flow`/`reading-order` — Stability: Experimental, single-engine. Never generate unless explicitly requested; the underlying rule above (visual order must not diverge from focus/reading order) applies regardless of whether `reading-flow` is available — it is a future tool for stating the intended order explicitly, not a license to reorder with `order` in the meantime.
-- Never remove content from the accessibility tree for styling reasons (`display: none` on content that should remain readable) — use a visually-hidden utility in `utilities`.
+- Never remove content from the accessibility tree for styling reasons (`display: none` on content that should remain readable) — use the visually-hidden utility in `utilities`. Required: use this exact utility rather than re-deriving one; it becomes visible again when it (or a descendant) receives focus, so skip links work.
+
+```css
+@layer utilities {
+  /* one purpose across several declarations — the documented exception to the
+     single-declaration utility contract; the 1px values are structural, not spacing */
+  .visually-hidden:not(:focus-within, :active) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+```
 
 ## Performance
 

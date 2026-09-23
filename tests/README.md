@@ -6,9 +6,10 @@ described, and so `docs/styles.css` cannot silently drift from the skills it
 advertises.
 
 ```sh
-./tests/run.sh                    # self-test, then gate repo stylesheets
+./tests/run.sh                    # self-test, then gate repo stylesheets and skill examples
 ./tests/run.sh --fast             # self-test only
 node tests/lint.mjs path/to.css   # lint arbitrary files
+node tests/lint.mjs skills/shared/references/*.md   # lint the css examples in Markdown
 node tests/lint.mjs --list-rules  # rule ids and the reference file each enforces
 ```
 
@@ -37,6 +38,8 @@ is the authoritative list; this table is prose around it.
 | `no-outline-none` | never remove a focus indicator without replacing it |
 | `max-selector-depth` | no deep descendant chains |
 | `unregistered-animated-property` | `@property` registration before a custom property is interpolated |
+| `no-layout-animation` | no transitioned/`@keyframes`-animated layout properties (`block-size`, `inset-*`, `margin`, …) |
+| `no-invalid-supports-guard` | no `@supports` test that is invalid or detects nothing (`at-rule()`, `style()`, `result:`, `anchor-name`) |
 
 `unregistered-animated-property` is the only rule that reads across files:
 `@property` registrations are collected from every path in one invocation,
@@ -77,6 +80,22 @@ emit for the `modern` profile.
 Multiset comparison is deliberate — it survives reformatting of the fixture. The
 trade-off is that a rule firing the right number of times on the wrong lines is
 not caught.
+
+## Skill examples
+
+The ```` ```css ```` blocks inside `skills/**/*.md` are what an AI copies most
+faithfully, so `run.sh` lints them too. Passing a `.md` file to `lint.mjs`
+extracts every css block, lints each one as its own stylesheet, and reports
+findings at the Markdown line.
+
+- **Skipped:** anti-examples — a block whose preceding line starts with
+  `Avoid`, `Never`, or `Before`, or a block preceded by
+  `<!-- lint-skip: reason -->`.
+- **Relaxed:** `no-unlayered` does not apply, because examples are fragments
+  that routinely omit the `@layer` wrapper (the `css-engineer` skill states
+  emitted CSS must still be layered).
+
+`fixtures/examples.md` self-tests the extraction and skip logic.
 
 ## Benchmarks (not run by the suite)
 

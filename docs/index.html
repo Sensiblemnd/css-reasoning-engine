@@ -178,8 +178,9 @@
         <div class="section-heading">
           <h2 class="section-heading-title">Verified, not just documented</h2>
           <p class="section-heading-lede">
-            Sixteen of the rules are enforced by a zero-dependency linter, so they are executable
-            rather than advisory. This site's own stylesheet is gated by it on every push. The
+            Eighteen of the rules are enforced by a zero-dependency linter, so they are executable
+            rather than advisory. This site's own stylesheet, and every example inside the skill
+            files, is gated by it on every push. The
             judgment rules, whether a token is semantic or whether <code>@scope</code> is warranted,
             stay with <strong>css-reviewer</strong>: a clean run is a floor, not a pass.
           </p>
@@ -191,11 +192,15 @@
 
 == linter self-test ==
 pass  compliant.css produced no findings
-pass  violations.css matched all 16 expected findings
-pass  all 16 rules covered by fixtures
+pass  violations.css matched all 22 expected findings
+pass  examples.md extraction matched expectations
+pass  all 18 rules covered by fixtures
 
 == repo stylesheets ==
 No findings across 1 file(s).
+
+== reference examples ==
+No findings across 12 file(s).
 
 All checks passed.</code></pre>
         </div>
