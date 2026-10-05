@@ -146,3 +146,21 @@
     }
   }
 }
+
+@layer reset {
+  /* Blocks the user's text-size setting (WCAG 1.4.4). */
+  :root {
+    /* expect: no-text-size-adjust-none */
+    -webkit-text-size-adjust: none;
+  }
+}
+
+@layer tokens {
+  /* eot/svg/ttf are dead bytes: every supported engine picks woff2. */
+  @font-face {
+    font-family: "Legacy";
+    /* expect: no-legacy-font-format */
+    src: url("/fonts/legacy.woff2") format("woff2"), url("/fonts/legacy.ttf") format("truetype");
+    font-display: swap;
+  }
+}

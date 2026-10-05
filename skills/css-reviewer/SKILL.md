@@ -89,7 +89,11 @@ Check for:
 - Subtle borders/placeholders/dividers with no `prefers-contrast: more` strengthening
 - Keyboard traps caused by CSS (hidden focusables, `pointer-events` abuse, visual order diverging from focus order)
 - `forced-colors` breakage (shadow/background-only boundaries, `forced-color-adjust: none`)
-- Zoom blocking, `px`-locked font sizes
+- Zoom blocking, `px`-locked font sizes, `text-size-adjust: none` (`100%` is fine)
+- Any animation flashing more than 3 times per second (on/off cycle < ~333ms) — severity `Critical` even inside a reduced-motion guard, because photosensitive users may never have set the preference
+- Parallax or scroll-linked zoom that is only slowed, not removed, under `prefers-reduced-motion: reduce`
+- Orientation locked via CSS (rotated root, content hidden under an `orientation` query) with no documented essential-orientation reason
+- Form controls without `font: inherit` (UA default is ~13px), or text-entry fields below `1rem` — iOS zooms the page on focus, which invites a zoom-blocking "fix"
 - Form validation styled only via JS-toggled classes where `:user-valid`/`:user-invalid` would work natively, or validation styling with no matching ARIA wiring
 - `::placeholder` used as the only labeling mechanism, or placeholder text failing contrast requirements
 - Hover effects not wrapped in `@media (hover: hover)` (sticky hover on touch), or information/controls reachable only on hover
@@ -105,13 +109,14 @@ Check for:
 - `transform`/`filter`/`will-change: transform` on an element with `position: fixed` descendants — the new containing block silently breaks the descendant's viewport-relative positioning
 - Missing `contain` / `content-visibility` on large independent regions
 - Missing `scrollbar-gutter: stable` on containers that toggle between scrollable and non-scrollable, causing layout shift
+- `@font-face` with legacy sources (`eot`, `svg`, `truetype`/`opentype`, or `woff` outside `legacy`) — dead bytes for every engine in the profile — or missing `font-display`
 - Style recalculation triggers (deep inheritance of frequently-changed custom properties)
 
 # Severity Model
 
 | Severity | Meaning |
 | -------- | ------- |
-| Critical | Accessibility broken or functional risk (focus removed, zoom blocked, contrast failure, keyboard trap) |
+| Critical | Accessibility broken or functional risk (focus removed, zoom blocked, contrast failure, keyboard trap, flashing > 3/s) |
 | High | Prohibited pattern or architecture violation (unlayered CSS, `!important`, hardcoded values, specificity abuse) |
 | Medium | Missed modern-CSS opportunity with maintainability cost (physical properties, breakpoint chains, duplication) |
 | Low | Style/consistency issue with no functional impact |

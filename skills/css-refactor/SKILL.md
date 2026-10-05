@@ -81,6 +81,17 @@ After:
 - `transition: all` → explicit list of the properties that actually change.
 - Add missing `prefers-reduced-motion` guards (behavior-preserving for `no-preference` users).
 - Layout-property animations → `transform` equivalents only when rendering matches; otherwise report as follow-up.
+- An animation flashing more than 3 times per second, or parallax that is only slowed under `prefers-reduced-motion: reduce` → report as `follow-up`. Fixing either changes what users see; never slow or remove it silently.
+
+## Legacy font sources → `woff2` only ([rules-a11y-performance.md](../shared/references/rules-a11y-performance.md))
+
+- Remove `eot`, `svg`, and `truetype`/`opentype` entries from an `@font-face` `src` list that already has a `woff2` entry; remove `woff` too unless the profile is `legacy` and targets need it. Risk: `none` — every engine in the profile already picks `woff2`, so the removed entries were never downloaded. A `src` with no `woff2` entry is a `follow-up` (the font file has to be converted; CSS alone can't fix it).
+- Never drop the `local()` entry or change `font-display` as part of this pass.
+
+## Text-size and control-zoom fixes → follow-up ([rules-forms.md](../shared/references/rules-forms.md))
+
+- `text-size-adjust: none` → `100%`. Risk: `low` — rendering at default text size is unchanged; it only stops overriding the user's text-size setting. Assumption: the user hasn't asked for pixel-identical output at enlarged text settings.
+- Missing `font: inherit` on form controls, or text-entry fields below `1rem` → report as `follow-up`. Both change rendered control text size.
 
 ## Fixed-width layouts → flagged, not silently changed ([rules-layout.md](../shared/references/rules-layout.md))
 
@@ -141,5 +152,6 @@ Never mix an unrequested behavior change into refactor output.
 - [ ] JS-toggled validation classes converted to `:user-valid`/`:user-invalid` only when trigger timing matches exactly, else reported as follow-up; existing ARIA wiring left intact
 - [ ] Hand-rolled donut-scope duplication converted to `@scope` only where the proximity conflict is proven identical, else reported as follow-up
 - [ ] JS scroll listeners, positioning libraries, autosize textareas, and `z-index` overlay stacks converted per the JS Effects → Native CSS catalog, each risk-rated (`low` conversions named with their assumption, `follow-up` left unconverted)
+- [ ] Legacy `@font-face` sources removed only where a `woff2` entry already exists; flashing animations, slowed-only parallax, and sub-`1rem` / non-inheriting form controls reported as follow-up
 - [ ] Prohibited patterns eliminated or reported as follow-ups
 - [ ] Change list covers every edit, each with a risk rating

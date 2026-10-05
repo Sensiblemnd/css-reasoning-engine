@@ -12,6 +12,16 @@
   *::after {
     box-sizing: border-box;
   }
+
+  /* Near-miss for no-text-size-adjust-none: 100% only disables auto-inflation. */
+  :root {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  :where(input, select, textarea, button) {
+    font: inherit;
+  }
 }
 
 @layer tokens {
@@ -20,6 +30,14 @@
     syntax: "<number>";
     inherits: true;
     initial-value: 0;
+  }
+
+  /* Near-miss for no-legacy-font-format: local() + woff2 only. */
+  @font-face {
+    font-family: "Inter";
+    src: local("Inter"), url("/fonts/inter-var.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: swap;
   }
 
   :root {

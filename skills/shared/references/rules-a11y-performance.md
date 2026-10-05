@@ -79,6 +79,26 @@ Priority: HIGH
 ```
 
 - For essential motion (loading indicators), reduce rather than remove: shorten duration, drop travel distance, keep opacity cues.
+- Required: decorative large-surface motion — parallax, scroll-linked zoom/scale, background drift, auto-panning hero media — is removed entirely under `prefers-reduced-motion: reduce`, never merely shortened. These are the classic vestibular triggers; a slower parallax still triggers. The unanimated state must be the finished, fully legible one.
+
+#### Flashing (WCAG 2.3.1)
+
+Priority: CRITICAL
+
+- Prohibited: any animation that flashes more than 3 times in any one second — a repeating on/off cycle shorter than ~333ms (with `animation-direction: alternate`, two iterations make one cycle) that swaps opacity, `visibility`, background, color, or `filter` brightness between strongly contrasting states. This applies regardless of `prefers-reduced-motion`: photosensitive seizures happen to users who never set a preference, so a reduced-motion guard is not a mitigation.
+- Required: attention states (errors, alerts, new-item highlights) use a single non-repeating transition or a slow pulse (cycle ≥ 1s, low contrast delta), never a blink. A red flash is the worst case — saturated red is called out separately in WCAG.
+
+Avoid:
+
+```css
+@keyframes alert-blink {
+  50% { opacity: 0; }
+}
+
+.alert {
+  animation: alert-blink 200ms infinite;
+}
+```
 
 ### Contrast and Forced Colors
 
@@ -120,6 +140,8 @@ Priority: HIGH
 - Prohibited: any zoom-blocking technique (`user-scalable=no`, `maximum-scale=1` guidance, `touch-action` abuse).
 - Required: layouts survive 200% zoom and 400% reflow — no fixed pixel heights on text containers; prefer `min-block-size` over `block-size` for text-bearing boxes.
 - Required: `rem` for font sizes and type-related tokens so user font-size preferences apply.
+- Prohibited: `text-size-adjust: none` (or `-webkit-text-size-adjust: none`) — it stops mobile browsers from honoring the user's text-size setting (WCAG 1.4.4). Resets that set it to `100%` are fine: that only disables the landscape auto-inflation heuristic.
+- Prohibited: locking orientation in CSS (WCAG 1.3.4) — rotating `body`/the root under `@media (orientation: …)`, or hiding content behind an "rotate your device" overlay. `orientation` queries may rearrange a layout; they must never make content unavailable in one orientation. Exception: content where one orientation is essential (a piano keyboard, a check-deposit capture), documented at the use site.
 
 ### Semantic HTML Compatibility
 
@@ -199,6 +221,19 @@ Priority: MEDIUM
 
 - Prefer `aspect-ratio` + reserved space (`contain-intrinsic-size`, explicit grid tracks) so async content (images, embeds, fonts) does not shift layout.
 - Required: `font-display: swap` or `optional` on `@font-face`; prefer `size-adjust` metrics overrides on fallback fonts for zero-CLS font loading.
+- Required: `@font-face` `src` lists `woff2` only, with `format("woff2")`. Every engine in the `modern`, `evergreen`, and `enterprise` profiles supports it, and it is the smallest format. Never list `eot`, `svg`, or `truetype`/`opentype` sources — no supported engine picks them over `woff2`, so they are dead bytes in the stylesheet and dead files on the server. Exception: `legacy`, where a `woff` source after `woff2` is permitted only if the project's targets include an engine without `woff2`.
+- Prefer a variable font (one `woff2` file with a `font-weight` range in the `@font-face` descriptor) over several static weights when the design uses three or more weights of one family.
+
+```css
+@layer tokens {
+  @font-face {
+    font-family: "Inter";
+    src: url("/fonts/inter-var.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: swap;
+  }
+}
+```
 - Prefer `scrollbar-gutter: stable` on containers whose content can toggle between scrollable and non-scrollable (e.g. a panel that grows past its viewport on some states) — reserves the scrollbar's space up front so its appearance doesn't shift adjacent layout.
 
 ```css

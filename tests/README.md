@@ -40,6 +40,8 @@ is the authoritative list; this table is prose around it.
 | `unregistered-animated-property` | `@property` registration before a custom property is interpolated |
 | `no-layout-animation` | no transitioned/`@keyframes`-animated layout properties (`block-size`, `inset-*`, `margin`, …) |
 | `no-invalid-supports-guard` | no `@supports` test that is invalid or detects nothing (`at-rule()`, `style()`, `result:`, `anchor-name`) |
+| `no-text-size-adjust-none` | never block the user's text-size setting (`100%` is allowed) |
+| `no-legacy-font-format` | no `eot`/`svg`/`truetype`/`opentype` sources in `@font-face` |
 
 `unregistered-animated-property` is the only rule that reads across files:
 `@property` registrations are collected from every path in one invocation,

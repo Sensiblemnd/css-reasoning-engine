@@ -24,7 +24,9 @@ Never generate, accept, or leave in place:
 - Descendant selectors crossing component boundaries.
 - Duplicate declarations already provided by an existing token, utility, or component.
 - `outline: none` / removed focus indicators without a `:focus-visible` replacement.
-- `user-scalable=no` or any zoom-blocking technique.
+- `user-scalable=no` or any zoom-blocking technique, including `text-size-adjust: none`.
+- Animations that flash more than 3 times per second (WCAG 2.3.1) — see [rules-a11y-performance.md](rules-a11y-performance.md) Flashing.
+- Orientation locking (rotating the root or hiding content under an `orientation` query) — see [rules-a11y-performance.md](rules-a11y-performance.md) Zoom and Scaling.
 - Meaning encoded by color alone.
 - Media queries that duplicate what a container query or `clamp()` already solves.
 - `@supports`-guarded base rule + enhancement for `env(safe-area-inset-*)` when the function's own fallback argument (`env(safe-area-inset-bottom, 0px)`) already covers the unsupported case.

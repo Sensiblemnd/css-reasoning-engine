@@ -549,6 +549,30 @@ const RULES = [
       }
     },
   },
+  {
+    id: "no-text-size-adjust-none",
+    doc: "rules-a11y-performance.md — never block the user's text-size setting",
+    check(node, ctx, report) {
+      if (node.type !== "decl") return;
+      if (/^(-webkit-)?text-size-adjust$/i.test(node.prop) && /^none$/i.test(node.value.trim())) {
+        report(node.line, "text-size-adjust: none blocks text resizing; use 100%.");
+      }
+    },
+  },
+  {
+    id: "no-legacy-font-format",
+    doc: "rules-a11y-performance.md — @font-face sources are woff2 (woff on legacy only)",
+    check(node, ctx, report) {
+      if (node.type !== "decl" || !/^src$/i.test(node.prop)) return;
+      if (!ctx.atrules.includes("font-face")) return;
+      const legacy = node.value.match(
+        /format\(\s*["']?(embedded-opentype|svg|truetype|opentype)["']?\s*\)|url\(\s*["']?[^"')]*\.(eot|ttf|otf|svg)\b/i,
+      );
+      if (legacy) {
+        report(node.line, `Legacy font source \`${legacy[1] ?? legacy[2]}\`; every supported engine uses woff2.`);
+      }
+    },
+  },
 ];
 
 const RULE_IDS = new Set(RULES.map((r) => r.id));

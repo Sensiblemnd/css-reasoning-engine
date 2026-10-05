@@ -69,6 +69,7 @@ Color:
 
 Animation:
 - Animating `transform` or `opacity`? → Allowed; add a `prefers-reduced-motion` guard.
+- Repeating attention effect (alert, error, highlight)? → Never a blink: no on/off cycle faster than 3 per second, on any profile, reduced-motion or not (see [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) Flashing). Use one transition or a slow, low-contrast pulse.
 - Transitioning a custom property, or setting one inside `@keyframes`? → Required: register it with `@property` in the `tokens` layer (`syntax`, explicit `inherits`, and `initial-value` for any syntax but `*`). Without registration it cannot interpolate and the transition silently does nothing (see [rules-advanced.md](../shared/references/rules-advanced.md) @property).
 - Animating layout properties (`width`, `height`, `top`, `margin`)? → Prohibited; restructure to `transform`, or use `@starting-style` / view transitions per profile.
 - Effect is driven by scroll position (progress bar, reveal-on-scroll, parallax)? → Scroll-driven animations are Experimental (Firefox has not shipped `animation-timeline`). Do not generate unless explicitly requested; when requested, guard with `@supports (animation-timeline: view())` and ensure the unenhanced state is the *finished* state, never the starting one.
@@ -84,6 +85,10 @@ Overlays:
 Forms:
 - Field fails constraint validation? → `:user-invalid` styling paired with the field's existing ARIA error wiring, never a JS-only error class (see [rules-forms.md](../shared/references/rules-forms.md)).
 - Native control (checkbox, radio, range) needs brand color? → `accent-color`, never a hidden-input/wrapper hack.
+- Any form control? → `font: inherit` in `reset`; text-entry fields at a type token ≥ `1rem`, so iOS doesn't zoom on focus (see [rules-forms.md](../shared/references/rules-forms.md) Control Text Size).
+
+Fonts:
+- Writing `@font-face`? → `woff2` source only, `font-display: swap`/`optional`; one variable font over three or more static weights (see [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) Reflow Discipline).
 
 Interaction:
 - Hover-only visual effect? → inside `@media (hover: hover)`, with the same affordance reachable via `:focus-visible` (see [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) Pointer and Touch).
@@ -127,14 +132,14 @@ Load the reference file when the task touches its topic:
 | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
 | Grid, Flexbox, logical properties, container queries/units, viewport units, print | [rules-layout.md](../shared/references/rules-layout.md) |
 | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
-| Focus, motion, contrast, forced colors, zoom, `contain`, `content-visibility`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
-| Validation states, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
+| Focus, motion, flashing, contrast, forced colors, zoom, orientation, `contain`, `content-visibility`, animation performance, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
+| Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
 | `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
 | Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 
 # Prohibited Patterns
 
-Never emit anything on the canonical list in [prohibited-patterns.md](../shared/references/prohibited-patterns.md). Summary: no `!important`, ID selectors, inline styles, hardcoded colors/spacing, magic numbers, `transition: all`, Sass syntax, unlayered CSS, deep selector chains, cross-component selectors, duplicate declarations an existing token/utility/component already covers, removed focus indicators, zoom blocking, color-only meaning, media queries duplicating a container query or `clamp()`, a `@supports`-guarded base rule plus enhancement for `env(safe-area-inset-*)` where the function's own fallback argument already covers it, fixed-width-only layout containers that don't reflow, vendor prefixes for Stable features, layout-property animation, unnecessary wrappers, `z-index` escalation for overlays that belong in the top layer, or a JS positioning library where anchor positioning applies. Note that JS scroll listeners are **not** prohibited by default — their CSS replacements (scroll-driven animations, `@container scroll-state()`) are Experimental. Every exception must be explicitly requested or documented with a comment at the use site.
+Never emit anything on the canonical list in [prohibited-patterns.md](../shared/references/prohibited-patterns.md). Summary: no `!important`, ID selectors, inline styles, hardcoded colors/spacing, magic numbers, `transition: all`, Sass syntax, unlayered CSS, deep selector chains, cross-component selectors, duplicate declarations an existing token/utility/component already covers, removed focus indicators, zoom blocking (including `text-size-adjust: none`), animations flashing more than 3 times per second, orientation locking, color-only meaning, media queries duplicating a container query or `clamp()`, a `@supports`-guarded base rule plus enhancement for `env(safe-area-inset-*)` where the function's own fallback argument already covers it, fixed-width-only layout containers that don't reflow, vendor prefixes for Stable features, layout-property animation, unnecessary wrappers, `z-index` escalation for overlays that belong in the top layer, or a JS positioning library where anchor positioning applies. Note that JS scroll listeners are **not** prohibited by default — their CSS replacements (scroll-driven animations, `@container scroll-state()`) are Experimental. Every exception must be explicitly requested or documented with a comment at the use site.
 
 # Self Review Checklist
 
@@ -165,7 +170,9 @@ Typography & Color:
 Accessibility:
 - [ ] `:focus-visible` styles present; no removed focus indicators; sticky bars offset with `scroll-padding`
 - [ ] Hover-only effects inside `@media (hover: hover)`; targets ≥ 24×24 CSS px
-- [ ] Animations guarded by `prefers-reduced-motion`
+- [ ] Animations guarded by `prefers-reduced-motion`; parallax/scroll-linked zoom removed entirely under `reduce`, not slowed
+- [ ] No animation flashes more than 3 times per second
+- [ ] Form controls inherit font; text-entry fields ≥ `1rem`; no `text-size-adjust: none`; no orientation lock
 - [ ] Every custom property named in a `transition` or set in `@keyframes` has an `@property` registration with an `initial-value`
 - [ ] Contrast meets WCAG AA; `prefers-contrast: more` strengthens subtle borders/placeholders; `forced-colors` not broken; zoom not blocked
 - [ ] Form validation feedback uses `:user-valid`/`:user-invalid` (or profile fallback) paired with ARIA wiring, not JS-toggled classes; native controls use `accent-color` instead of rebuilt `appearance: none` markup
@@ -176,6 +183,7 @@ Performance:
 - [ ] No expensive selectors (universal descendant, deep chains, unanchored `:has()`)
 - [ ] `contain` / `content-visibility` applied to independent, off-screen-heavy regions
 - [ ] `scrollbar-gutter: stable` applied where content toggles between scrollable and non-scrollable
+- [ ] `@font-face` sources are `woff2` only (plus `woff` on `legacy` when targets require it)
 
 Compatibility:
 - [ ] Browser profile resolved and respected

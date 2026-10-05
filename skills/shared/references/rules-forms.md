@@ -1,4 +1,4 @@
-# Forms Rules: Validation States, Native Control Color, Field Sizing, Native Select, Labels
+# Forms Rules: Validation States, Control Text Size, Native Control Color, Field Sizing, Native Select, Labels
 
 ## Validation States
 
@@ -31,6 +31,25 @@ Profiles where it is `false` (`legacy`) — this rule only:
   }
 }
 ```
+
+## Control Text Size
+
+Priority: HIGH
+
+Browsers do not let form controls inherit the page font: `input`, `select`, `textarea`, and `button` default to a UA font around 13px. Below 16px, iOS Safari zooms the whole page when a text field receives focus — and the common "fix" is a zoom-blocking viewport tag, which is prohibited ([prohibited-patterns.md](prohibited-patterns.md)).
+
+- Required: controls inherit typography in `reset`, so they pick up the body type token:
+
+```css
+@layer reset {
+  :where(input, select, textarea, button) {
+    font: inherit;
+  }
+}
+```
+
+- Required: text-entry controls (`input`, `select`, `textarea`) use a type token that resolves to at least `1rem`. Never give a field a smaller "compact" size token — shrink padding, not text.
+- Never prevent focus zoom with `maximum-scale=1`, `user-scalable=no`, or `text-size-adjust: none` (see [rules-a11y-performance.md](rules-a11y-performance.md) Zoom and Scaling).
 
 ## Native Control Color
 
