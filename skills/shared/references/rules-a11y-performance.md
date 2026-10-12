@@ -8,6 +8,7 @@ Priority: HIGH
 
 - Required: visible focus styles via `:focus-visible` for every interactive element.
 - Prohibited: `outline: none` / `outline: 0` without a `:focus-visible` replacement in the same change.
+- Prohibited: `clip-path` or `mask` on a focusable element. Both cut off the element's own `outline` and `box-shadow`, so the focus ring is removed just as surely as `outline: none`. Exception: a clip that is lifted while focused, as the visually-hidden utility below does with `:not(:focus-within, :active)`. Otherwise clip a decorative child, or put the ring on an unclipped wrapper with `:focus-within`. For non-round corners on controls, use `corner-shape`: the ring follows the shape instead of being cut off (see [rules-advanced.md](rules-advanced.md) Shapes and Clipping).
 
 Preferred:
 
@@ -45,7 +46,7 @@ button:focus {
 Priority: HIGH
 
 - Required: hover-only visual effects (lift, reveal, color shift) go inside `@media (hover: hover)`. On touch screens `:hover` sticks after a tap, leaving the element in its hover state. Never put information or controls behind hover alone — they must also be reachable via focus (`:focus-visible`, `:focus-within`) and on touch.
-- Required: interactive targets are at least 24×24 CSS px (WCAG 2.5.8), via a `--size-target-min` token applied as `min-block-size`/`min-inline-size` (or padding that reaches it). Prefer 44×44 (`--size-target-comfortable`) for primary touch controls.
+- Required: interactive targets are at least 24×24 CSS px (WCAG 2.5.8), via a `--size-target-min` token applied as `min-block-size`/`min-inline-size` (or padding that reaches it). Prefer 44×44 (`--size-target-comfortable`) for primary touch controls. The size that counts is the *hit area*: `clip-path` and `mask` shrink it to the visible shape, so a 24×24 button clipped to a circle or a triangle no longer meets the minimum.
 - Prefer `@media (pointer: coarse)` to enlarge targets or spacing for touch input, instead of viewport-width breakpoints (a narrow window is not a touch screen, and tablets are wide).
 
 ```css

@@ -147,6 +147,21 @@
   }
 }
 
+@layer components {
+  /* Physical corner longhand; use corner-start-start-shape. */
+  .ticket {
+    border-radius: var(--radius-card);
+    /* expect: no-physical-property */
+    corner-top-left-shape: notch;
+  }
+
+  /* Unprefixed mask is Baseline; black stop is exempt as a mask value. */
+  .fade-edge {
+    /* expect: no-vendor-prefix */
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent);
+  }
+}
+
 @layer reset {
   /* Blocks the user's text-size setting (WCAG 1.4.4). */
   :root {

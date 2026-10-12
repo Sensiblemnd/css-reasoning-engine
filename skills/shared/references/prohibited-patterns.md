@@ -15,7 +15,7 @@ Never generate, accept, or leave in place:
 - `!important` — Exception: overriding third-party inline styles, in the `overrides` layer only, with a comment.
 - ID selectors for styling. Exception: an id referenced because the *platform* keys behavior to it, not to raise specificity — `:has(#section:target)`, where `:target` is defined against the URL fragment and no class can express it. A styling hook that happens to be an id is not covered: if the element also carries a class, match the class (`:has(.nav-toggle-input:checked)`, never `:has(#nav-toggle:checked)`).
 - Inline `style` attributes.
-- Hardcoded colors in components (hex, `rgb()`, named colors) — semantic tokens only. Exception: `black`/`white` as the mixing operand of `color-mix()` that shades or tints a token (`color-mix(in oklch, var(--color-accent), black 12%)`) — the result is still derived from the token, not a new design color. Any other literal operand is a violation.
+- Hardcoded colors in components (hex, `rgb()`, named colors) — semantic tokens only. Exception: `black`/`white` as the mixing operand of `color-mix()` that shades or tints a token (`color-mix(in oklch, var(--color-accent), black 12%)`) — the result is still derived from the token, not a new design color. Also exempt: `black`/`white`/`transparent` as stops in a `mask`/`mask-image` gradient, where they are alpha/luminance values, not colors anyone sees. Any other literal operand is a violation.
 - Hardcoded spacing / magic numbers — semantic tokens only.
 - `transition: all`.
 - Sass/Less syntax in native CSS (`$vars`, `@mixin`, `@extend`, `&-suffix` concatenation).
@@ -23,7 +23,7 @@ Never generate, accept, or leave in place:
 - Selector chains deeper than 3 compound selectors.
 - Descendant selectors crossing component boundaries.
 - Duplicate declarations already provided by an existing token, utility, or component.
-- `outline: none` / removed focus indicators without a `:focus-visible` replacement.
+- `outline: none` / removed focus indicators without a `:focus-visible` replacement — including `clip-path` or `mask` on a focusable element, which cuts its focus ring off.
 - `user-scalable=no` or any zoom-blocking technique, including `text-size-adjust: none`.
 - Animations that flash more than 3 times per second (WCAG 2.3.1) — see [rules-a11y-performance.md](rules-a11y-performance.md) Flashing.
 - Orientation locking (rotating the root or hiding content under an `orientation` query) — see [rules-a11y-performance.md](rules-a11y-performance.md) Zoom and Scaling.

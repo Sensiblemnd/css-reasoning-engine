@@ -25,9 +25,9 @@ Required order:
    | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
    | Grid, Flexbox, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, viewport units, safe-area insets, responsive media, print | [rules-layout.md](../shared/references/rules-layout.md) |
    | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `text-wrap`, hyphenation, `text-box-trim`, **WCAG AA contrast ratios and paired tokens** | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
-   | Focus, motion, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
-   | Validation states, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
-   | `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
+   | Focus, motion, flashing, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, orientation, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
+   | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
+   | `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
    | Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 4. If the project vendors this repo's linter (`tests/lint.mjs`), run it over the files under review for a mechanical first pass:
 
@@ -79,11 +79,18 @@ Check for:
 - `::details-content` (or any disclosure) animating `block-size`/`height` — a layout-property animation that also cannot reach `auto` without Experimental `interpolate-size`. A JS height-animation hack on `<details>` is **not** a finding: no Stable CSS replaces it
 - A custom property transitioned or set in `@keyframes` with no `@property` registration — severity `high`, this is a silent functional bug (the transition does nothing) rather than a style issue. Also flag a registration missing `initial-value` for a non-`*` syntax, which is dropped silently and fails the same way
 - A JavaScript positioning library for an anchored overlay on a profile where `anchor_positioning` is `true`/`optional`
+- `clip-path: path()` with fixed units where a basic shape (`inset(… round …)`, `circle()`, `polygon()`) or, per profile, `shape()` would scale with the box and accept tokens
+- `clip-path` transitions between different shape functions or `polygon()`s with different point counts — they snap instead of animating
+- `-webkit-mask*` where unprefixed `mask` applies (all but `legacy`), or an overlay element faking a fade-out edge that `mask-image` handles
+- `clip-path` used to fake non-round corners on a bordered or shadowed box — the border and shadow are cut off. Note `corner-shape` as the fix **only** if the project has opted into it (Experimental; its absence is never a finding)
+- `corner-shape` without `border-radius` (does nothing), wrapped in `@supports` (unnecessary — it degrades to `border-radius`), using physical `corner-top-left-shape`-style longhands, or carrying meaning the rounded fallback loses
+- `border-shape` with no complete `border-radius` design outside its `@supports` guard
 
 ## Accessibility
 
 Check for:
-- Missing or removed `:focus-visible` handling
+- Missing or removed `:focus-visible` handling, including `clip-path`/`mask` on a focusable element (cuts off its outline) that isn't lifted on focus
+- `clip-path`/`mask` shrinking an interactive element's hit area below 24×24 CSS px
 - Animations/transitions without `prefers-reduced-motion` guards
 - Contrast below WCAG AA; meaning encoded by color alone
 - Subtle borders/placeholders/dividers with no `prefers-contrast: more` strengthening

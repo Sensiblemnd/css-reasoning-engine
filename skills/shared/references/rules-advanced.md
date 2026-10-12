@@ -1,4 +1,4 @@
-# Advanced Rules: @property, @starting-style, Scroll-Driven Animations, View Transitions, Anchor Positioning, Custom Functions
+# Advanced Rules: @property, @starting-style, Scroll-Driven Animations, Shapes and Clipping, View Transitions, Anchor Positioning, Custom Functions
 
 ## @property — Stability: Stable
 
@@ -197,11 +197,55 @@ Required: `sibling-index()`/`sibling-count()` for stagger delays driven by DOM p
 }
 ```
 
+## Shapes and Clipping: `clip-path`, `shape()`, `mask`, `corner-shape`, `border-shape`
+
+Pick the tool by what must change shape:
+
+| Need | Tool | Stability |
+| ---- | ---- | --------- |
+| Rounded corners | `border-radius` | Stable |
+| Non-round corners (squircle, bevel, scoop, notch) with border, shadow, and focus ring following them | `corner-shape` + `border-radius` | Experimental (safe-degrading) |
+| Cut the element's whole rendering to a geometric outline | `clip-path` with a basic shape | Stable |
+| Same, but the outline is curves/arcs that must use tokens or `%` | `clip-path: shape()` | Emerging |
+| Soft or image-based edge (fade-out, gradient reveal, icon silhouette) | `mask-image` | Stable |
+| Border, background, and shadow drawn along an arbitrary shape | `border-shape` | Experimental |
+
+### `clip-path` — Stability: Stable
+
+Priority: MEDIUM
+
+`clip-path` with `inset()`, `circle()`, `ellipse()`, `polygon()`, and `path()` is Baseline widely available.
+
+- Required: `clip-path` hides everything the element paints outside the shape, including its own `outline` and `box-shadow`, and clicks there no longer reach it. Never clip an interactive element directly: its focus ring disappears and its hit area shrinks. Clip an inner decorative child, or draw the focus indicator on an unclipped wrapper (see [rules-a11y-performance.md](rules-a11y-performance.md) Focus and Pointer and Touch).
+- Prefer `inset(… round …)`, `circle()`, `ellipse()`, and `polygon()` over `path()`. Basic shapes take `%` and custom properties and resize with the box; `path()` is an opaque, fixed-unit SVG string that neither tokens nor container size can reach.
+- Required: shapes animate only between the same function with matching arguments (two `inset()`s, two `polygon()`s with the same number of points). Anything else snaps. To reveal a polygon, start from the same polygon collapsed, not from `inset(…)`.
+- `clip-path` is paint-only, so short reveal transitions are permitted under the Animation Cost rules. Guard them with `prefers-reduced-motion` like any other motion.
+- A value other than `none` creates a stacking context, like `opacity < 1`. Check for `z-index` interactions with siblings before adding it.
+
+```css
+@layer components {
+  .avatar-image {
+    clip-path: circle(50%);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      clip-path: inset(0 0 100% 0);
+      transition: clip-path 300ms ease-out;
+
+      &.is-visible {
+        clip-path: inset(0);
+      }
+    }
+  }
+}
+```
+
 ### `shape()` — Stability: Emerging
 
 Priority: LOW — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
 
-Prefer `shape()` over `clip-path: path(...)` when the shape is expressed as a sequence of commands (arcs, curves) whose values need to reference custom properties or container units — `path()` takes an opaque SVG path string that tokens can't participate in.
+Prefer `shape()` over `clip-path: path(...)` when the shape is expressed as a sequence of commands (arcs, curves) whose values need to reference custom properties or container units — `path()` takes an opaque SVG path string that tokens can't participate in. The `clip-path` rules above (focus ring, hit area, interpolation) apply unchanged.
 
 ```css
 @supports (clip-path: shape(from 0 0, line to 100% 0)) {
@@ -212,6 +256,53 @@ Prefer `shape()` over `clip-path: path(...)` when the shape is expressed as a se
   }
 }
 ```
+
+### `mask` — Stability: Stable
+
+Priority: LOW
+
+Unprefixed `mask` and `mask-image` are Baseline widely available.
+
+- Required: unprefixed properties only. `-webkit-mask-*` is a Stable-feature vendor prefix ([prohibited-patterns.md](prohibited-patterns.md)).
+- Prefer `mask-image` over a gradient overlay element for fade-out edges (truncated text, scroll shadows): it needs no extra element and fades to whatever is behind the element.
+- `black`/`white`/`transparent` in a mask gradient are alpha/luminance stops, not design colors, so they are exempt from the token rule.
+- Masks clip `outline` and the hit area exactly like `clip-path`. The same never-on-interactive-elements rule applies.
+
+```css
+@layer components {
+  .excerpt {
+    mask-image: linear-gradient(to bottom, black 70%, transparent);
+  }
+}
+```
+
+### `corner-shape` — Stability: Experimental (safe-degrading)
+
+Priority: LOW — never generate unless explicitly requested.
+
+Not Baseline: Chromium only (Chrome/Edge 139+); Firefox and Safari have not shipped it. Unlike most Experimental features it degrades safely. An engine without it ignores the declaration and draws the `border-radius` it modifies, so the fallback is ordinary rounded corners, not a broken box.
+
+- Required: pair it with `border-radius`. `corner-shape` reshapes the radius and does nothing without one.
+- Required: no `@supports` guard. The unsupported state is already correct, as with `prefers-reduced-transparency`. The plain rounded fallback must be an acceptable design on its own. Never let meaning depend on the shape (a ticket notch that signals "torn-off", a bevel that signals a state).
+- Prefer `corner-shape` over `clip-path` for non-round corners on anything with a border, shadow, or focus ring. Border, `outline`, `box-shadow`, background, and `overflow` all follow the corner shape, and the hit area stays the full box.
+- Required: with `scoop`, `notch`, or `bevel`, content is not reshaped and still sits in the rectangular box, so padding must keep text clear of the cut-away corners.
+- Required: logical longhands (`corner-start-start-shape`, `corner-block-start-shape`) when corners differ, never the physical `corner-top-left-shape` family, for the same reason as logical `border-*-radius`.
+- `squircle` at the same radius looks visibly tighter than `round`. Tune the radius so both look right, rather than raising it only for the enhanced engine.
+
+```css
+@layer components {
+  .tile {
+    border-radius: var(--radius-card);
+    corner-shape: squircle;
+  }
+}
+```
+
+### `border-shape` — Stability: Experimental
+
+Never generate unless explicitly requested. Not Baseline and not in a stable release of any major engine.
+
+It draws the border, background, and shadow along a basic shape instead of the box. The border is always rendered `solid` and `border-radius`/`corner-shape` are ignored while it is set. When requested, gate it with `@supports (border-shape: circle(50%))` and keep a complete `border-radius` (or `corner-shape`) design outside the guard.
 
 ## View Transitions — Stability: Emerging (same-document); Experimental (cross-document)
 

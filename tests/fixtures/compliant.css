@@ -157,6 +157,19 @@
       background-color 150ms ease-out;
   }
 
+  /* Near-misses for no-literal-color / no-physical-property: mask stops are
+   * alpha, not colors; corner-shape (Experimental, emitted only on explicit
+   * request) uses the logical longhand. */
+  .excerpt {
+    mask-image: linear-gradient(to bottom, black 70%, transparent);
+  }
+
+  .tile {
+    border-radius: var(--radius-card);
+    corner-shape: squircle;
+    corner-start-start-shape: scoop;
+  }
+
   /* Near-misses for no-invalid-supports-guard: valid, meaningful tests. */
   @supports (position-anchor: --a) {
     .menu {

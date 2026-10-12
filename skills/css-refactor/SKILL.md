@@ -88,6 +88,14 @@ After:
 - Remove `eot`, `svg`, and `truetype`/`opentype` entries from an `@font-face` `src` list that already has a `woff2` entry; remove `woff` too unless the profile is `legacy` and targets need it. Risk: `none` — every engine in the profile already picks `woff2`, so the removed entries were never downloaded. A `src` with no `woff2` entry is a `follow-up` (the font file has to be converted; CSS alone can't fix it).
 - Never drop the `local()` entry or change `font-display` as part of this pass.
 
+## Masks and clipping ([rules-advanced.md](../shared/references/rules-advanced.md) Shapes and Clipping)
+
+- `-webkit-mask-*` next to the same unprefixed declaration → delete the prefixed one. Risk: `none` on every profile where `mask_unprefixed` is `true`.
+- `-webkit-mask-*` with no unprefixed twin → rename to the unprefixed property. Risk: `low` for `mask-image`, `mask-size`, `mask-position`, `mask-repeat`, which take the same values. `-webkit-mask-composite` uses different keywords (`source-in` → `intersect`, `source-out` → `subtract`, `xor` → `exclude`, `source-over` → `add`): map them exactly or report as `follow-up`.
+- `clip-path: path()` → basic shape only when the shape is exactly expressible (a rounded rectangle → `inset(0 round …)`, a circle → `circle()`) at the element's current size. Risk: `low`, assumption: the element's size is fixed. If the element resizes, the old `path()` didn't scale and the new shape does, so report as `follow-up`.
+- `clip-path`/`mask` on a focusable element whose clip isn't lifted on focus → `follow-up`. Moving the clip to a child or wrapper changes the DOM and the rendering.
+- Never introduce `corner-shape` or `border-shape` in a refactor. Both are Experimental. Swapping a `clip-path` corner for `corner-shape` changes rendering in every engine: where it is supported the border and shadow now follow the shape, and where it isn't the corners fall back to round.
+
 ## Text-size and control-zoom fixes → follow-up ([rules-forms.md](../shared/references/rules-forms.md))
 
 - `text-size-adjust: none` → `100%`. Risk: `low` — rendering at default text size is unchanged; it only stops overriding the user's text-size setting. Assumption: the user hasn't asked for pixel-identical output at enlarged text settings.
@@ -153,5 +161,6 @@ Never mix an unrequested behavior change into refactor output.
 - [ ] Hand-rolled donut-scope duplication converted to `@scope` only where the proximity conflict is proven identical, else reported as follow-up
 - [ ] JS scroll listeners, positioning libraries, autosize textareas, and `z-index` overlay stacks converted per the JS Effects → Native CSS catalog, each risk-rated (`low` conversions named with their assumption, `follow-up` left unconverted)
 - [ ] Legacy `@font-face` sources removed only where a `woff2` entry already exists; flashing animations, slowed-only parallax, and sub-`1rem` / non-inheriting form controls reported as follow-up
+- [ ] `-webkit-mask-*` removed or renamed with `mask-composite` keywords mapped exactly; `path()` → basic shape only at proven-identical geometry; clipped focusable elements reported as follow-up; no `corner-shape`/`border-shape` introduced
 - [ ] Prohibited patterns eliminated or reported as follow-ups
 - [ ] Change list covers every edit, each with a risk rating

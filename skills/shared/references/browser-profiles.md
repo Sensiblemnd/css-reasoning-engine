@@ -98,6 +98,10 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   view_transitions_cross_doc:    #  experimental — never without explicit request
   field_sizing:                  #  true     optional    false      false
   shape_function:                #  true     optional    false      false
+  clip_path_basic_shapes:        #  true     true       true       false
+  mask_unprefixed:               #  true     true       true       false
+  corner_shape:                  #  experimental — only on explicit request; no @supports (safe-degrading to border-radius)
+  border_shape:                  #  experimental — never without explicit request
   sibling_index_count:           #  true     optional    false      false
   custom_functions:              #  experimental — never without explicit request
   user_valid_invalid:            #  true     true       true       false
@@ -141,6 +145,8 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | Scroll snap (`scroll-snap-type`/`-align`, `scroll-padding`/`scroll-margin`) | widely available since 2020–2022 |
 | `<dialog>`, `::backdrop` | widely available since 2022–2024 |
 | `popover`, `:popover-open` | 2025-01-27 (newly available, > 12mo — Stable) |
+| `clip-path` basic shapes (`inset()`, `circle()`, `ellipse()`, `polygon()`, `path()`) | widely available since 2020 |
+| `mask`, `mask-image` (unprefixed) | 2023-12 (newly available; widely 2026-06) |
 
 ### Emerging
 
@@ -171,7 +177,9 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `@container scroll-state()` (`stuck`, `snapped`, `scrollable`) | Not Baseline — Firefox has not shipped it |
 | `overscroll-behavior` | Not Baseline — Safari has not shipped it |
 | `prefers-reduced-transparency` | Not Baseline — Firefox has not shipped it. **Exception: generate on every profile anyway.** An unsupported engine never matches the query, leaving the base styling untouched, so there is no broken state to guard against and no fallback to write. See rules-a11y-performance.md, Transparency. |
-| `if()`, `@function`, `@mixin`, `corner-shape`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
+| `corner-shape` (and `superellipse()`) | Not Baseline — Chromium only (139+); Firefox and Safari have not shipped it. **Safe-degrading:** an unsupported engine draws the plain `border-radius`, so when explicitly requested it needs no `@supports` guard. See rules-advanced.md, Shapes and Clipping. |
+| `border-shape` | Not Baseline — not in a stable release of any major engine |
+| `if()`, `@function`, `@mixin`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
 | `@supports at-rule()` | Not Baseline — Chromium 148 only as of 2026-03; Firefox/Safari in progress. Never use it as a guard: engines without it evaluate the condition false and drop the block even when they support the at-rule being tested. |
 
 ## @supports Rules

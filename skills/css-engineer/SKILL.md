@@ -87,6 +87,12 @@ Forms:
 - Native control (checkbox, radio, range) needs brand color? → `accent-color`, never a hidden-input/wrapper hack.
 - Any form control? → `font: inherit` in `reset`; text-entry fields at a type token ≥ `1rem`, so iOS doesn't zoom on focus (see [rules-forms.md](../shared/references/rules-forms.md) Control Text Size).
 
+Shapes:
+- Non-round corners (squircle, bevel, scoop, notch)? → `corner-shape` only when explicitly requested (Experimental, Chromium-only), always with `border-radius`, no `@supports`; the rounded fallback must stand alone. Otherwise `border-radius`.
+- Cut an element to a geometric outline? → `clip-path` with a basic shape (`inset()`/`circle()`/`polygon()`), `shape()` for token-driven curves per profile. Never on a focusable or interactive element: clip a decorative child instead.
+- Soft or faded edge? → unprefixed `mask-image`, never an overlay element or `-webkit-mask`.
+- `border-shape`? → Experimental, never unless requested (see [rules-advanced.md](../shared/references/rules-advanced.md) Shapes and Clipping).
+
 Fonts:
 - Writing `@font-face`? → `woff2` source only, `font-display: swap`/`optional`; one variable font over three or more static weights (see [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) Reflow Discipline).
 
@@ -134,7 +140,7 @@ Load the reference file when the task touches its topic:
 | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
 | Focus, motion, flashing, contrast, forced colors, zoom, orientation, `contain`, `content-visibility`, animation performance, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
 | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
-| `@property`, `@starting-style`, scroll-driven animations, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
+| `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
 | Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 
 # Prohibited Patterns
@@ -169,6 +175,7 @@ Typography & Color:
 
 Accessibility:
 - [ ] `:focus-visible` styles present; no removed focus indicators; sticky bars offset with `scroll-padding`
+- [ ] No `clip-path`/`mask` on focusable or interactive elements (it cuts off the focus ring and shrinks the hit area)
 - [ ] Hover-only effects inside `@media (hover: hover)`; targets ≥ 24×24 CSS px
 - [ ] Animations guarded by `prefers-reduced-motion`; parallax/scroll-linked zoom removed entirely under `reduce`, not slowed
 - [ ] No animation flashes more than 3 times per second

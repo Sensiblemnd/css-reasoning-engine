@@ -206,6 +206,9 @@ const PHYSICAL_PROPS = new Set([
   "top", "right", "bottom", "left",
   "width", "height", "min-width", "min-height", "max-width", "max-height",
   "overflow-x", "overflow-y",
+  "border-top-left-radius", "border-top-right-radius", "border-bottom-left-radius", "border-bottom-right-radius",
+  "corner-top-left-shape", "corner-top-right-shape", "corner-bottom-left-shape", "corner-bottom-right-shape",
+  "corner-top-shape", "corner-right-shape", "corner-bottom-shape", "corner-left-shape",
 ]);
 
 const PHYSICAL_VALUES = { "text-align": /^(left|right)$/i, float: /^(left|right)$/i, clear: /^(left|right)$/i };
@@ -327,7 +330,8 @@ const RULES = [
       else {
         // black/white as color-mix() operands are a shading idiom, not a
         // literal design color: color-mix(in oklch, var(--x), black 12%).
-        const shading = /color-mix\s*\(/i.test(v);
+        // Same for mask gradients: the stops are alpha/luminance, not colors.
+        const shading = /color-mix\s*\(/i.test(v) || /^(-webkit-)?mask(-image)?$/i.test(node.prop);
         for (const word of v.toLowerCase().split(/[^a-z]+/)) {
           if (!NAMED_COLORS.has(word)) continue;
           if (shading && (word === "black" || word === "white")) continue;
