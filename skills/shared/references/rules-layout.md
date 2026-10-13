@@ -1,4 +1,4 @@
-# Layout Rules: Grid, Flexbox, Logical Properties, Container Queries, Units
+# Layout Rules: Grid, Flexbox, Logical Properties, Container Queries, Overflow, Units
 
 ## Responsive Layout Baseline
 
@@ -45,6 +45,7 @@ Priority: HIGH
 - Two-dimensional placement (rows AND columns, overlap, explicit areas) → Required: Grid.
 - One-axis alignment or distribution → Required: Flexbox.
 - Plain stacked content → normal flow. Never add `display: grid`/`flex` without a layout need.
+- Never make a running-text container (a paragraph, a label, a heading with inline links/`<strong>`/`<code>`) a flex or grid container. Each text run and each inline element becomes a separate item: the spaces between them collapse, and the text stops wrapping as a paragraph. To align an icon with a label, wrap the text in its own element and flex the parent, or use `vertical-align`/`text-box-trim` on the icon.
 - Prefer `gap` for spacing between siblings in any Grid/Flex context. Never simulate gap with child margins.
 - Masonry layout (`grid-template-rows: masonry`, `grid-lanes`) — Stability: Experimental, single-engine. Never generate unless explicitly requested; when requested, pair with a documented fallback (`auto-fit`/`auto-fill` column grid) for the profile's other capability-`false` targets. Do not invent masonry as the default answer to "Pinterest-style" layout requests — that is `auto-fit`/`auto-fill` with `minmax()` today (see Intrinsic Sizing below).
 
@@ -193,6 +194,37 @@ Never wrap a style query in `@supports`. There is no valid `@supports` test for 
       font-size: var(--text-xl);
     }
   }
+}
+```
+
+## Overflow
+
+Priority: HIGH
+
+- Required: `overflow: clip` (not `hidden`) when the intent is only "cut off what sticks out": decorative bleed, rounded-corner clipping of media, stopping a horizontal overflow at a section edge. `overflow: hidden` makes the element a scroll container, which:
+  - silently breaks `position: sticky` on every descendant: they stick to this non-scrolling box instead of the viewport, so they never stick at all;
+  - can still be scrolled programmatically and by focus moving into hidden content, shifting the layout for keyboard users.
+- `overflow: hidden` is correct only when a scroll container is actually wanted, such as a scroller whose scrolling is driven by script. Say so in a comment. To contain floats or margins (a new block formatting context), use `display: flow-root`, not `overflow`.
+- Prefer `overflow-inline`/`overflow-block` over `overflow-x`/`overflow-y` (Stable, [browser-profiles.md](browser-profiles.md)).
+- Never put `overflow: hidden` on `html`/`body` to "fix" horizontal scroll. It hides the bug: the content still overflows, and it's now unreachable at narrow sizes and under zoom. Set on both `html` and `body`, it also turns `body` into the scroll container and breaks every sticky header. Find the overflowing element (usually unsized media or a fixed width) and fix that.
+- `overflow-clip-margin` is not verified as Baseline. Don't depend on it; if a clipped edge needs room for a shadow or focus ring, add padding instead.
+
+Preferred:
+
+```css
+@layer components {
+  .hero {
+    overflow: clip; /* trims the decorative bleed; .hero-nav below can still be sticky */
+  }
+}
+```
+
+Avoid:
+
+```css
+html,
+body {
+  overflow-x: hidden; /* hides the overflow bug; body becomes the scroller, sticky breaks */
 }
 ```
 

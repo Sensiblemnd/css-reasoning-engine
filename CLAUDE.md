@@ -22,8 +22,8 @@ skills/
 │   ├── browser-profiles.md      # profile resolution, capability map, @supports rules
 │   ├── prohibited-patterns.md   # canonical never-generate list, with per-role handling
 │   ├── rules-architecture.md    # cascade layers, imports, component boundaries, specificity, nesting, @scope
-│   ├── rules-layout.md          # Grid/Flexbox, logical properties, container queries, viewport units
-│   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), clamp(), text-wrap
+│   ├── rules-layout.md          # Grid/Flexbox, logical properties, container queries, overflow, viewport units
+│   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), clamp(), text-wrap, line-height, line clamping
 │   ├── rules-a11y-performance.md # focus, pointer/touch, motion, contrast, forced-colors, containment, animation cost
 │   ├── rules-forms.md           # validation states, native control color, labels/placeholder
 │   ├── rules-interaction.md     # scroll snap, overlays/top layer, :open, ::details-content, scroll-state, carousels

@@ -42,6 +42,9 @@ is the authoritative list; this table is prose around it.
 | `no-invalid-supports-guard` | no `@supports` test that is invalid or detects nothing (`at-rule()`, `style()`, `result:`, `anchor-name`) |
 | `no-text-size-adjust-none` | never block the user's text-size setting (`100%` is allowed) |
 | `no-legacy-font-format` | no `eot`/`svg`/`truetype`/`opentype` sources in `@font-face` |
+| `no-unit-line-height` | `line-height` is unitless (no `px`/`rem`/`em`/`%`) |
+| `incomplete-line-clamp` | `-webkit-line-clamp` has `display: -webkit-box` + `-webkit-box-orient: vertical`; no lone unprefixed `line-clamp` |
+| `no-root-overflow-x-hidden` | no `overflow-x`/`overflow-inline: hidden` on `html`/`body`/`:root` |
 
 `unregistered-animated-property` is the only rule that reads across files:
 `@property` registrations are collected from every path in one invocation,

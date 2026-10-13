@@ -1,4 +1,4 @@
-# Interaction Rules: Scroll Snap, Overscroll, Overlays, Details Disclosure, Scroll-State Queries, Carousels
+# Interaction Rules: Scroll Snap, Overscroll, Scrollbars, Overlays, Details Disclosure, Scroll-State Queries, Carousels
 
 ## Scroll Snap — Stability: Stable
 
@@ -12,7 +12,7 @@ Priority: MEDIUM
 @layer components {
   .gallery {
     display: flex;
-    overflow: auto; /* overflow-inline is still Emerging — see browser-profiles.md */
+    overflow-inline: auto;
     scroll-snap-type: inline mandatory;
     scroll-padding-inline-start: var(--space-header-offset);
     gap: var(--space-m);
@@ -44,6 +44,25 @@ Priority: LOW — not yet Baseline: Safari has not shipped it. Never generate un
     .modal-body {
       overscroll-behavior: contain;
     }
+  }
+}
+```
+
+## Scrollbar Styling: `scrollbar-width` (Stable), `scrollbar-color` (Emerging, safe-degrading)
+
+Priority: LOW
+
+- Required: standard `scrollbar-width` and `scrollbar-color` for scrollbar styling, never the `::-webkit-scrollbar` pseudo-element family on `modern`/`evergreen`. Engines that support the standard properties ignore `::-webkit-scrollbar` on any element where they're set to something other than `auto`, so mixing the two gives different scrollbars per engine.
+- `scrollbar-color` is Emerging but needs no `@supports` guard: an engine without it ignores the declaration and draws its default scrollbar, which is a correct state. `scrollbar-color` takes thumb then track, and both must be tokens with at least 3:1 contrast against each other (a scrollbar is a UI control, WCAG 1.4.11).
+- Never `scrollbar-width: none` on content the user has to scroll. It removes the only visible sign that more content exists and the mouse user's drag handle. Exception: a scroller with its own visible controls (a carousel with previous/next buttons), documented at the use site.
+- `::-webkit-scrollbar` is acceptable only on `enterprise`/`legacy` as the profile's fallback, and only on elements where `scrollbar-color` is not set.
+
+```css
+@layer components {
+  .panel-body {
+    overflow-block: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
   }
 }
 ```
@@ -102,9 +121,9 @@ Rules:
 - Cross-reference `@starting-style` ([rules-advanced.md](rules-advanced.md)) for entry/exit animation of `<dialog>` and `[popover]` — not restated here.
 - To tether a popover to its trigger, use anchor positioning ([rules-advanced.md](rules-advanced.md) Anchor Positioning) — Emerging, and `position-area` does nothing without `position-anchor`, so it belongs inside that section's `@supports (position-anchor: --a)` guard, never in an unguarded `[popover]` rule. A popover's default placement is centered in the viewport; that is the correct unenhanced state.
 
-## `::details-content` — Stability: Emerging
+## `::details-content` — Stability: Stable
 
-Priority: LOW — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
+Priority: LOW — direct on `modern`/`evergreen`; unavailable on `enterprise`/`legacy` (not yet Baseline widely available), where the disclosure simply opens without the fade.
 
 `::details-content` targets the collapsible part of a `<details>` element, so the disclosure's content can be styled and faded without a wrapper element.
 
@@ -112,17 +131,15 @@ Priority: LOW — direct on `modern`; `@supports`-gated progressive enhancement 
 - A height-animated disclosure is therefore **not** a Stable-CSS replacement for a JS height-measurement hack. Leave existing JS height animation in place (reviewer: not a finding; refactorer: skip) unless the project has explicitly opted into `interpolate-size`.
 
 ```css
-@supports selector(::details-content) {
-  @media (prefers-reduced-motion: no-preference) {
-    @layer components {
-      .disclosure::details-content {
-        opacity: 0;
-        transition: opacity 200ms ease-out, content-visibility 200ms allow-discrete;
-      }
+@media (prefers-reduced-motion: no-preference) {
+  @layer components {
+    .disclosure::details-content {
+      opacity: 0;
+      transition: opacity 200ms ease-out, content-visibility 200ms allow-discrete;
+    }
 
-      .disclosure:where([open])::details-content {
-        opacity: 1;
-      }
+    .disclosure:where([open])::details-content {
+      opacity: 1;
     }
   }
 }

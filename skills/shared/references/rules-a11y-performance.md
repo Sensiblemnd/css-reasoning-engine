@@ -82,6 +82,29 @@ Priority: HIGH
 - For essential motion (loading indicators), reduce rather than remove: shorten duration, drop travel distance, keep opacity cues.
 - Required: decorative large-surface motion — parallax, scroll-linked zoom/scale, background drift, auto-panning hero media — is removed entirely under `prefers-reduced-motion: reduce`, never merely shortened. These are the classic vestibular triggers; a slower parallax still triggers. The unanimated state must be the finished, fully legible one.
 
+#### Pause, Stop, Hide (WCAG 2.2.2)
+
+Priority: HIGH
+
+- Required: any motion that starts automatically, lasts more than 5 seconds, and sits alongside other content can be paused — marquees, auto-scrolling logo strips and tickers, looping background video or gradients, animated illustrations. `prefers-reduced-motion` is not enough on its own: users who haven't set it still need to stop a ticker to read it.
+- Required: pause on `:hover` and `:focus-within` with `animation-play-state: paused`, so mouse and keyboard users can stop it in place. For content that matters, also flag the HTML for a visible pause button. CSS can style its state (`:has(.pause-toggle:checked)`), but the control itself is HTML.
+- Required: under `prefers-reduced-motion: reduce`, stop the animation and show a static, complete state (all marquee items visible or wrapped, not frozen mid-scroll).
+- Exception: loading indicators and other motion that is essential and ends on its own.
+
+```css
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee-track {
+      animation: marquee-scroll 30s linear infinite;
+    }
+
+    .marquee:is(:hover, :focus-within) .marquee-track {
+      animation-play-state: paused;
+    }
+  }
+}
+```
+
 #### Flashing (WCAG 2.3.1)
 
 Priority: CRITICAL
@@ -190,6 +213,24 @@ Priority: HIGH
 ```css
 .card {
   transition: transform 200ms ease-out, opacity 200ms ease-out;
+}
+```
+
+- Prefer `linear()` easing (Stable) for spring, bounce, and elastic curves, stored as a token, over extra `@keyframes` stops that fake the overshoot or a JS spring library driving per-frame styles. `linear()` runs the curve on the compositor like any other easing.
+
+```css
+@layer tokens {
+  :root {
+    --ease-spring: linear(0, 0.36 9%, 0.94 21%, 1.09 30%, 1.03 41%, 0.99 55%, 1);
+  }
+}
+
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .toast {
+      transition: transform 400ms var(--ease-spring);
+    }
+  }
 }
 ```
 

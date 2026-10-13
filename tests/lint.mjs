@@ -564,6 +564,48 @@ const RULES = [
     },
   },
   {
+    id: "no-unit-line-height",
+    doc: "rules-color-typography.md — line-height is unitless",
+    check(node, ctx, report) {
+      if (node.type !== "decl" || !/^line-height$/i.test(node.prop)) return;
+      const m = node.value.trim().match(/^-?[\d.]+([a-z]+|%)$/i);
+      if (m) report(node.line, `line-height \`${node.value.trim()}\` inherits as a fixed length; use a unitless ratio.`);
+    },
+  },
+  {
+    id: "incomplete-line-clamp",
+    doc: "rules-color-typography.md — -webkit-line-clamp needs its full triplet",
+    check(node, ctx, report) {
+      if (node.type !== "rule") return;
+      const decls = node.children.filter((c) => c.type === "decl");
+      const find = (re) => decls.find((d) => re.test(d.prop));
+      const prefixed = find(/^-webkit-line-clamp$/i);
+      const unprefixed = find(/^line-clamp$/i);
+      if (unprefixed && !prefixed) {
+        report(unprefixed.line, "Unprefixed line-clamp alone is ignored in most engines; use the -webkit-line-clamp triplet.");
+      }
+      if (!prefixed) return;
+      const box = decls.some((d) => /^display$/i.test(d.prop) && /^-webkit-(inline-)?box$/i.test(d.value.trim()));
+      const orient = decls.some((d) => /^-webkit-box-orient$/i.test(d.prop) && /^vertical$/i.test(d.value.trim()));
+      if (!box || !orient) {
+        report(prefixed.line, "-webkit-line-clamp is ignored without display: -webkit-box and -webkit-box-orient: vertical.");
+      }
+    },
+  },
+  {
+    id: "no-root-overflow-x-hidden",
+    doc: "rules-layout.md — never mask horizontal overflow on the root",
+    check(node, ctx, report) {
+      if (node.type !== "rule") return;
+      if (!splitSelectors(node.selector).some((s) => /^(html|body|:root)$/i.test(s.trim()))) return;
+      for (const d of node.children) {
+        if (d.type === "decl" && /^overflow-(x|inline)$/i.test(d.prop) && /^hidden$/i.test(d.value.trim())) {
+          report(d.line, "overflow-x: hidden on the root hides an overflow bug; fix the overflowing element.");
+        }
+      }
+    },
+  },
+  {
     id: "no-legacy-font-format",
     doc: "rules-a11y-performance.md — @font-face sources are woff2 (woff on legacy only)",
     check(node, ctx, report) {

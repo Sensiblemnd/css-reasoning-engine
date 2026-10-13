@@ -59,6 +59,12 @@
 }
 
 @layer base {
+  /* Near-miss for no-root-overflow-x-hidden: a modal scroll lock clips both
+   * axes and is a different pattern. */
+  :root:has(dialog[open]) {
+    overflow: hidden;
+  }
+
   :where(a, button) {
     color: var(--color-accent);
   }
@@ -168,6 +174,16 @@
     border-radius: var(--radius-card);
     corner-shape: squircle;
     corner-start-start-shape: scoop;
+  }
+
+  /* Near-misses for no-unit-line-height, incomplete-line-clamp: unitless
+   * leading; the full -webkit-line-clamp triplet (prefixes are allowed). */
+  .card-excerpt {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: clip;
+    line-height: 1.5;
   }
 
   /* Near-misses for no-invalid-supports-guard: valid, meaningful tests. */

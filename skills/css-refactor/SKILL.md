@@ -82,6 +82,8 @@ After:
 - Add missing `prefers-reduced-motion` guards (behavior-preserving for `no-preference` users).
 - Layout-property animations → `transform` equivalents only when rendering matches; otherwise report as follow-up.
 - An animation flashing more than 3 times per second, or parallax that is only slowed under `prefers-reduced-motion: reduce` → report as `follow-up`. Fixing either changes what users see; never slow or remove it silently.
+- Auto-playing motion over 5 seconds with no hover/focus pause → `follow-up`. Adding `animation-play-state: paused` changes behavior.
+- Identical `linear()`/`cubic-bezier()` values repeated across components → one easing token. Risk: `none`. Converting keyframe-faked overshoot or a JS spring to `linear()` → `follow-up`: the sampled curve never matches the original exactly.
 
 ## Legacy font sources → `woff2` only ([rules-a11y-performance.md](../shared/references/rules-a11y-performance.md))
 
@@ -95,6 +97,16 @@ After:
 - `clip-path: path()` → basic shape only when the shape is exactly expressible (a rounded rectangle → `inset(0 round …)`, a circle → `circle()`) at the element's current size. Risk: `low`, assumption: the element's size is fixed. If the element resizes, the old `path()` didn't scale and the new shape does, so report as `follow-up`.
 - `clip-path`/`mask` on a focusable element whose clip isn't lifted on focus → `follow-up`. Moving the clip to a child or wrapper changes the DOM and the rendering.
 - Never introduce `corner-shape` or `border-shape` in a refactor. Both are Experimental. Swapping a `clip-path` corner for `corner-shape` changes rendering in every engine: where it is supported the border and shadow now follow the shape, and where it isn't the corners fall back to round.
+
+## Overflow, line height, clamping, scrollbars ([rules-layout.md](../shared/references/rules-layout.md), [rules-color-typography.md](../shared/references/rules-color-typography.md), [rules-interaction.md](../shared/references/rules-interaction.md))
+
+- `overflow: hidden` → `overflow: clip`. Risk: `low`, and only when all of these hold (name them): no `position: sticky` descendant (it would start sticking), no floated children or child margins collapsing through the edge (`hidden` creates a block formatting context, `clip` doesn't), and no script scrolling the element. Otherwise `follow-up`.
+- `overflow-x: hidden` on `html`/`body` → `follow-up`. Removing it exposes the overflow it was hiding; the fix is the overflowing element, which is out of scope for a refactor.
+- `overflow-x`/`overflow-y` → `overflow-inline`/`overflow-block` in horizontal writing modes. Risk: `none` on profiles where both are Stable.
+- Unit `line-height` → unitless ratio (`24px` at `font-size: 16px` → `1.5`). Risk: `none` only when no descendant sets a different `font-size`; otherwise `follow-up`, because those descendants' line spacing changes (that change is the fix, but it is a rendering change).
+- `-webkit-line-clamp` missing `display: -webkit-box` / `-webkit-box-orient: vertical`, or unprefixed `line-clamp` alone → `follow-up`. Completing the triplet makes a clamp that never worked start working.
+- `::-webkit-scrollbar` styling → `scrollbar-width`/`scrollbar-color` → `follow-up`. The standard properties can't reproduce custom widths, radii, or buttons, so rendering changes in every engine.
+- `display: flex`/`grid` on a running-text container → `follow-up`. Removing it re-flows the text.
 
 ## Text-size and control-zoom fixes → follow-up ([rules-forms.md](../shared/references/rules-forms.md))
 
@@ -162,5 +174,6 @@ Never mix an unrequested behavior change into refactor output.
 - [ ] JS scroll listeners, positioning libraries, autosize textareas, and `z-index` overlay stacks converted per the JS Effects → Native CSS catalog, each risk-rated (`low` conversions named with their assumption, `follow-up` left unconverted)
 - [ ] Legacy `@font-face` sources removed only where a `woff2` entry already exists; flashing animations, slowed-only parallax, and sub-`1rem` / non-inheriting form controls reported as follow-up
 - [ ] `-webkit-mask-*` removed or renamed with `mask-composite` keywords mapped exactly; `path()` → basic shape only at proven-identical geometry; clipped focusable elements reported as follow-up; no `corner-shape`/`border-shape` introduced
+- [ ] `overflow: hidden` → `clip` only with sticky/BFC/script-scroll assumptions named; unit `line-height` → unitless only where no descendant font-size differs; clamp, scrollbar, flex-on-text, and missing-pause fixes reported as follow-up
 - [ ] Prohibited patterns eliminated or reported as follow-ups
 - [ ] Change list covers every edit, each with a risk rating

@@ -7,6 +7,11 @@
 > Where MDN's Baseline banner gives only a month, the exact day comes from the last engine's
 > release note (e.g. `text-box-trim` → Firefox 154, 2026-08-18). Prefer that over rounding, and
 > never date a longhand from a grouped webstatus entry that tracks its shorthand.
+>
+> Partial re-check 2026-10-12 (MDN Baseline banners): `linear()`, `scrollbar-width`, `scrollbar-color`,
+> `sibling-index()`, `line-clamp`, `mask-image`, `corner-shape`, `border-shape`. Emerging ages recomputed
+> to that date; `::details-content` and `overflow-inline`/`-block` promoted to Stable by the 12-month rule.
+> Every other row still carries the 2026-09-09 verification.
 
 ## Profile Resolution
 
@@ -67,6 +72,10 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   container_style_queries:       #  true     optional*   false      false
   subgrid:                       #  true     true       true       false
   scrollbar_gutter:              #  true     true       false      false
+  scrollbar_width:               #  true     true       false      false
+  scrollbar_color:               #  true     true       false      false   (Emerging but safe-degrading: unguarded on evergreen)
+  overflow_clip:                 #  true     true       true       false
+  line_clamp_unprefixed:         #  experimental — use the -webkit-line-clamp triplet (rules-color-typography.md)
   logical_properties:            #  true     true       true       true
   clamp:                         #  true     true       true       true
   anchor_positioning:            #  true     optional    false      false
@@ -84,13 +93,14 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   dialog:                        #  true     true       true       false
   popover:                       #  true     true       false      false
   open_pseudo:                   #  true     optional    false      false
-  details_content:               #  true     optional    false      false
+  details_content:               #  true     true       false      false
   overscroll_behavior:           #  experimental — never without explicit request
   scroll_state_queries:          #  experimental — never without explicit request
   reduced_transparency:          #  true     true       true       true   (safe-degrading; see Experimental table)
 
   # Advanced
   property_registration:         #  true     true       false      false
+  linear_easing:                 #  true     true       true       false
   starting_style:                #  true     true       false      false
   scroll_driven_animations:      #  experimental — never without explicit request
   view_transitions:              #  true     optional    false      false
@@ -147,24 +157,28 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `popover`, `:popover-open` | 2025-01-27 (newly available, > 12mo — Stable) |
 | `clip-path` basic shapes (`inset()`, `circle()`, `ellipse()`, `polygon()`, `path()`) | widely available since 2020 |
 | `mask`, `mask-image` (unprefixed) | 2023-12 (newly available; widely 2026-06) |
+| `linear()` easing | 2023-12 (newly available; widely 2026-06) |
+| `overflow: clip` | widely available (Safari 16, 2022-09) |
+| `scrollbar-width` | 2024-12 (newly available; widely 2027-06) |
+| `::details-content` | 2025-09-16 (Firefox 143; newly available, > 12mo — Stable as of 2026-09-16) |
+| `overflow-inline` / `overflow-block` | 2025-09 (Safari 26; newly available, > 12mo — Stable) |
 
 ### Emerging
 
-| Feature | Baseline since (last engine) | Age as of 2026-09-09 |
+| Feature | Baseline since (last engine) | Age as of 2026-10-12 |
 | ------- | --------------- | --------------------- |
 | Anchor Positioning (`anchor-name`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026 — but see the split note below | partial |
-| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~5.5 months |
-| View Transitions, same-document (`view-transition-name`, `view-transition-class`, `::view-transition-*`) | 2025-10-14 (Firefox 144) | ~11 months |
-| `:active-view-transition` | 2026-01-13 | ~8 months |
-| `@container style()` | 2026-05-19 (Firefox 151) | ~3.7 months |
-| `field-sizing` | 2026-06-16 (Firefox 152) | ~2.8 months |
-| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~0.7 months |
-| `contrast-color()` | 2026-04-10 | ~5 months |
-| `shape()` | 2026-02-24 | ~6.5 months |
-| `sibling-index()` / `sibling-count()` | 2026-08-18 | ~0.7 months |
-| `:open` | 2026-05-11 | ~4 months |
-| `::details-content` | 2025-09-16 (Firefox 143) | ~11.8 months — crosses to Stable within weeks; re-verify before relying on this row |
-| `overflow-inline` / `overflow-block` | 2025-09 (Safari 26) | ~12 months — crosses to Stable on the next verification pass; until then use `overflow` / `overflow-x` |
+| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~6.6 months |
+| View Transitions, same-document (`view-transition-name`, `view-transition-class`, `::view-transition-*`) | 2025-10-14 (Firefox 144) | ~11.9 months — crosses to Stable on 2026-10-14; promote on the next pass |
+| `:active-view-transition` | 2026-01-13 | ~9 months |
+| `@container style()` | 2026-05-19 (Firefox 151) | ~4.8 months |
+| `field-sizing` | 2026-06-16 (Firefox 152) | ~3.9 months |
+| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~1.8 months |
+| `contrast-color()` | 2026-04-10 | ~6 months |
+| `shape()` | 2026-02-24 | ~7.6 months |
+| `sibling-index()` / `sibling-count()` | 2026-08 (re-checked 2026-10-12: MDN "Baseline 2026, newly available since August 2026") | ~1.8 months |
+| `:open` | 2026-05-11 | ~5 months |
+| `scrollbar-color` | 2025-12 (MDN "Baseline 2025") | ~10 months |
 
 **Anchor Positioning is split and must be feature-detected on its weakest part.** `anchor-name`, `position-area` and `position-try-fallbacks` are Baseline 2026 newly available, but `position-anchor` is still Limited availability, and grouped Baseline data (webstatus.dev `anchor-positioning`) therefore reports the whole feature as not Baseline. Treat it as Emerging and key the `@supports` guard to `position-anchor`, never to `anchor-name` — guarding on the part that already shipped everywhere detects nothing. Re-check this split on the next verification pass; it is the row most likely to have moved.
 
@@ -180,6 +194,8 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `corner-shape` (and `superellipse()`) | Not Baseline — Chromium only (139+); Firefox and Safari have not shipped it. **Safe-degrading:** an unsupported engine draws the plain `border-radius`, so when explicitly requested it needs no `@supports` guard. See rules-advanced.md, Shapes and Clipping. |
 | `border-shape` | Not Baseline — not in a stable release of any major engine |
 | `if()`, `@function`, `@mixin`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
+| `random()`, `text-fit`, `background-clip: border-area`, typed `attr()` (`attr(data-x type(<number>))`, or `attr()` in any property other than `content`) | Not Baseline. These drive much of the current demo content (css-tip, css-articles), which is exactly where they get copied from. Never generate unless requested. |
+| Unprefixed `line-clamp` | Not Baseline (MDN: limited availability). Alone it does nothing in most engines; use the `-webkit-line-clamp` triplet, which every engine supports and the spec keeps as a legacy alias. |
 | `@supports at-rule()` | Not Baseline — Chromium 148 only as of 2026-03; Firefox/Safari in progress. Never use it as a guard: engines without it evaluate the condition false and drop the block even when they support the at-rule being tested. |
 
 ## @supports Rules

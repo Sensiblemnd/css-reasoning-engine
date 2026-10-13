@@ -23,12 +23,12 @@ Required order:
    | Prohibited patterns (Required: load for every review) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
    | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
    | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-   | Grid, Flexbox, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, viewport units, safe-area insets, responsive media, print | [rules-layout.md](../shared/references/rules-layout.md) |
-   | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `text-wrap`, hyphenation, `text-box-trim`, **WCAG AA contrast ratios and paired tokens** | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+   | Grid, Flexbox, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, overflow, viewport units, safe-area insets, responsive media, print | [rules-layout.md](../shared/references/rules-layout.md) |
+   | Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `text-wrap`, hyphenation, `line-height`, line clamping, tabular numbers, link underlines, `text-box-trim`, **WCAG AA contrast ratios and paired tokens** | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
    | Focus, motion, flashing, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, orientation, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
    | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
    | `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
-   | Scroll snap, `overscroll-behavior`, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
+   | Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 4. If the project vendors this repo's linter (`tests/lint.mjs`), run it over the files under review for a mechanical first pass:
 
    ```sh
@@ -64,6 +64,14 @@ Check for:
 - Media queries where the behavior depends on component space → container query finding
 - `min-width`/`max-width` prefixed media/container query syntax where range comparison syntax (`width < 60rem`) applies for the resolved profile (all but `legacy`)
 - Physical properties where logical properties apply
+- `overflow: hidden` used only to clip (no scroll intended) — flag `overflow: clip`, and raise it to `high` when a descendant is `position: sticky`, which this silently breaks. `overflow-x: hidden` on `html`/`body` masking a horizontal-overflow bug is `high` too: name the overflowing element if it can be found
+- `display: flex`/`grid` on a running-text container (paragraph, heading, label with inline links or `<strong>`) — whitespace between inline items collapses and the text stops wrapping as prose
+- `line-height` with a unit (`px`/`rem`/`em`/`%`) — inherited as a fixed length, so children with other font sizes get wrong line spacing; fails WCAG 1.4.12 overrides
+- Incomplete line clamp: `-webkit-line-clamp` without `display: -webkit-box` and `-webkit-box-orient: vertical` (ignored), or unprefixed `line-clamp` alone (ignored in most engines). Do **not** flag the `-webkit-` triplet itself as a vendor-prefix violation
+- `::-webkit-scrollbar` styling on `modern`/`evergreen` where `scrollbar-width`/`scrollbar-color` apply; `scrollbar-width: none` on content that must be scrolled with no visible alternative controls
+- Spring/bounce easing faked with extra keyframe stops or a JS spring library where a `linear()` easing token would do
+- Ticking or column-aligned numbers (timers, counters, table prices) without `font-variant-numeric: tabular-nums`; link underlines faked with `border-bottom` or background gradients
+- An Experimental feature copied from demo content (`random()`, `text-fit`, `background-clip: border-area`, typed `attr()`, unprefixed `line-clamp`) without an explicit project opt-in
 - Repetitive selectors that nesting, `:is()`, or `:where()` would collapse
 - Breakpoint chains that `clamp()` replaces
 - Sass syntax remnants in native CSS
@@ -97,6 +105,7 @@ Check for:
 - Keyboard traps caused by CSS (hidden focusables, `pointer-events` abuse, visual order diverging from focus order)
 - `forced-colors` breakage (shadow/background-only boundaries, `forced-color-adjust: none`)
 - Zoom blocking, `px`-locked font sizes, `text-size-adjust: none` (`100%` is fine)
+- Auto-playing motion longer than 5 seconds (marquee, ticker, infinite background loop) with no `animation-play-state: paused` on hover/focus, or no static state under reduced motion (WCAG 2.2.2) — severity `high`. Loading indicators are exempt
 - Any animation flashing more than 3 times per second (on/off cycle < ~333ms) — severity `Critical` even inside a reduced-motion guard, because photosensitive users may never have set the preference
 - Parallax or scroll-linked zoom that is only slowed, not removed, under `prefers-reduced-motion: reduce`
 - Orientation locked via CSS (rotated root, content hidden under an `orientation` query) with no documented essential-orientation reason

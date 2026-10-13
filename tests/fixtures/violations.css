@@ -162,6 +162,36 @@
   }
 }
 
+@layer components {
+  /* Inherits as 24px: a child at a larger font size gets overlapping lines. */
+  .unit-leading {
+    /* expect: no-unit-line-height */
+    line-height: 24px;
+  }
+
+  /* Missing display: -webkit-box and -webkit-box-orient: the clamp is ignored. */
+  .half-clamp {
+    /* expect: incomplete-line-clamp */
+    -webkit-line-clamp: 3;
+    overflow: clip;
+  }
+
+  /* Unprefixed alone does nothing in most engines. */
+  .lone-clamp {
+    /* expect: incomplete-line-clamp */
+    line-clamp: 2;
+  }
+}
+
+@layer base {
+  /* Masks the overflow bug instead of fixing the overflowing element. */
+  html,
+  body {
+    /* expect: no-root-overflow-x-hidden, no-physical-property */
+    overflow-x: hidden;
+  }
+}
+
 @layer reset {
   /* Blocks the user's text-size setting (WCAG 1.4.4). */
   :root {
