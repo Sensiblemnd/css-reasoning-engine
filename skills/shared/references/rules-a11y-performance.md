@@ -69,7 +69,7 @@ Priority: HIGH
 Priority: HIGH
 
 - Required: every animation and non-trivial transition is guarded for `prefers-reduced-motion`.
-- Prefer the opt-in pattern — motion only when the user allows it:
+- Prefer the opt-in pattern — motion only when the user allows it. It is also the pattern that is safe on every profile: an engine without the query never matches `no-preference`, so it gets the static styles. The opt-out form (`@media (prefers-reduced-motion: reduce)` removing motion) leaves full motion running on that engine.
 
 ```css
 @media (prefers-reduced-motion: no-preference) {

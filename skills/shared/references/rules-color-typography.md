@@ -42,7 +42,26 @@ Rules:
 Priority: HIGH
 
 - Required: OKLCH for all authored color values — perceptually uniform lightness across hues.
-- Required: `light-dark()` for scheme-dependent colors, with `color-scheme: light dark` set on `:root`. Never duplicate whole rule blocks per scheme when `light-dark()` suffices. Exception: profiles where the capability is `false` — use the `prefers-color-scheme` media query with custom-property swaps.
+- Required: `light-dark()` for scheme-dependent colors, with `color-scheme: light dark` set on `:root`. Never duplicate whole rule blocks per scheme when `light-dark()` suffices. Exception: profiles where the capability is `false` (`enterprise`, `legacy`) — use the `prefers-color-scheme` media query with custom-property swaps. Swap only the semantic tokens, in the `tokens` layer; components stay identical across schemes. Set `color-scheme` to match, so native controls and scrollbars follow:
+
+```css
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+    --color-surface: oklch(99% 0 0);
+    --color-on-surface: oklch(25% 0.02 255);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-surface: oklch(20% 0.02 255);
+      --color-on-surface: oklch(95% 0.01 255);
+    }
+  }
+}
+```
+
+- The light values sit outside the query, so an engine that doesn't support it gets a complete light theme.
 - Prefer `color-mix()` for derived states (hover, disabled, tint) over new literal values:
 
 ```css

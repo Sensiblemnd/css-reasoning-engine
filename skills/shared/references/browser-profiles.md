@@ -97,6 +97,9 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   overscroll_behavior:           #  experimental — never without explicit request
   scroll_state_queries:          #  experimental — never without explicit request
   reduced_transparency:          #  true     true       true       true   (safe-degrading; see Experimental table)
+  prefers_reduced_motion:        #  true     true       true       true   (inert where unsupported; never @supports)
+  prefers_color_scheme:          #  true     true       true       true   (inert where unsupported; never @supports)
+  prefers_contrast:              #  true     true       true       true   (inert where unsupported; never @supports)
 
   # Advanced
   property_registration:         #  true     true       false      false
@@ -125,6 +128,7 @@ Rules:
 - `optional*` → progressive enhancement **without** an `@supports` guard. These features (`@scope`, `@container style()`) have no Baseline `@supports` test: `style()` is not a valid condition at all, and `at-rule()` is not Baseline, so a guard evaluates false and drops the block even in engines that support the feature. An engine without the feature drops the whole at-rule block by itself, so emit it unguarded and make the rules outside it a usable default on their own.
 - `false` → do not generate; use the fallback technique instead.
 - `experimental` → never generate unless explicitly requested.
+- User-preference media queries (`prefers-reduced-motion`, `prefers-color-scheme`, `prefers-contrast`, `prefers-reduced-transparency`, `forced-colors`) are never wrapped in `@supports` and never need a fallback on any profile. An engine that doesn't know a media feature evaluates the query as false, so the base styles outside it must be the safe state. A reviewer must not flag a missing guard on them.
 - A project may override any capability; explicit overrides beat profile defaults.
 
 ## Feature Stability
@@ -156,6 +160,8 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `<dialog>`, `::backdrop` | widely available since 2022–2024 |
 | `popover`, `:popover-open` | 2025-01-27 (newly available, > 12mo — Stable) |
 | `clip-path` basic shapes (`inset()`, `circle()`, `ellipse()`, `polygon()`, `path()`) | widely available since 2020 |
+| `prefers-reduced-motion`, `prefers-color-scheme` | widely available (2022-07-15) |
+| `prefers-contrast` | widely available (2024-11-30) |
 | `mask`, `mask-image` (unprefixed) | 2023-12 (newly available; widely 2026-06) |
 | `linear()` easing | 2023-12 (newly available; widely 2026-06) |
 | `overflow: clip` | widely available (Safari 16, 2022-09) |
