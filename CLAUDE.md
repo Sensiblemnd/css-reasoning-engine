@@ -14,6 +14,20 @@ Use the plain Read/Edit/Write tools for file changes in this repo, not shell one
 
 Never run git commands (`add`, `commit`, `push`, etc.) in this repo unless the user explicitly asks for that specific command. Draft commit messages when asked, but leave staging and committing to the user unless told otherwise.
 
+## Keeping docs in sync
+
+Required: every change to a rule, a skill, the linter, or Baseline data ends with a stale-docs pass before it is reported done. Check each of these against what changed, and update anything that no longer matches:
+
+- `README.md`: skill table descriptions, folder tree, test commands.
+- `docs/index.html`: rule count in the "Verified" section and the sample test output under it (rule and expected-finding counts), the layer contract cards (must match `rules-architecture.md`), the profile table, the skill cards.
+- `tests/README.md`: the rule table (one row per rule in `--list-rules`) and the benchmark finding count.
+- `tests/benchmarks/README.md`: its finding count. Re-run `node tests/lint.mjs tests/benchmarks/product-card.css` after any linter change.
+- `CLAUDE.md`: the repository structure file map (one-line description per reference file).
+- `skills/shared/references/browser-profiles.md`: the verification notes at the top, the Emerging ages, and the "next crossings" list. Promote any feature whose 12-month Stable date has passed as of today, and update every rule section, capability-map row, and example that still treats it as Emerging (for example, a leftover `@supports` guard).
+- Each skill's rule-routing table (`css-engineer`, `css-reviewer`): topic lists must name the sections each reference file now contains.
+
+`planning/` is gitignored historical material: never update it. Report which docs were changed and which were checked and found current.
+
 ## Repository structure
 
 ```
@@ -24,9 +38,9 @@ skills/
 │   ├── rules-architecture.md    # cascade layers, imports, component boundaries, specificity, nesting, @scope
 │   ├── rules-layout.md          # Grid/Flexbox, logical properties, container queries, overflow, viewport units
 │   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), clamp(), text-wrap, line-height, line clamping
-│   ├── rules-a11y-performance.md # focus, pointer/touch, motion, contrast, forced-colors, containment, animation cost
-│   ├── rules-forms.md           # validation states, native control color, labels/placeholder
-│   ├── rules-interaction.md     # scroll snap, overlays/top layer, :open, ::details-content, scroll-state, carousels
+│   ├── rules-a11y-performance.md # focus, pointer/touch, motion (pause, flashing), contrast, forced-colors, zoom/orientation, containment, animation cost, @font-face
+│   ├── rules-forms.md           # validation states, control text size, native control color, labels/placeholder
+│   ├── rules-interaction.md     # scroll snap, scrollbars, overlays/top layer, :open, ::details-content, scroll-state, carousels
 │   └── rules-advanced.md        # @property, @starting-style, scroll-driven animations, shapes/clipping, View Transitions, Anchor Positioning
 ├── css-engineer/SKILL.md  # role: generate new CSS
 ├── css-reviewer/SKILL.md  # role: audit existing CSS, report structured findings, never rewrite

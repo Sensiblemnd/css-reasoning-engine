@@ -300,24 +300,24 @@ Not Baseline: Chromium only (Chrome/Edge 139+); Firefox and Safari have not ship
 
 ### `border-shape` — Stability: Experimental
 
-Never generate unless explicitly requested. Not Baseline and not in a stable release of any major engine.
+Never generate unless explicitly requested. Not Baseline: Chromium only (Chrome/Edge 155+); Firefox and Safari have not shipped it.
 
 It draws the border, background, and shadow along a basic shape instead of the box. The border is always rendered `solid` and `border-radius`/`corner-shape` are ignored while it is set. When requested, gate it with `@supports (border-shape: circle(50%))` and keep a complete `border-radius` (or `corner-shape`) design outside the guard.
 
-## View Transitions — Stability: Emerging (same-document); Experimental (cross-document)
+## View Transitions — Stability: Stable (same-document); Emerging (`:active-view-transition`); Experimental (cross-document)
 
 Priority: MEDIUM
 
-Same-document view transitions (`view-transition-name`, `view-transition-class`, `::view-transition-*`, `:active-view-transition`) are Emerging: direct on `modern`, `@supports`-gated progressive enhancement on `evergreen`, unavailable on `enterprise`/`legacy`. Always progressive enhancement regardless of profile: navigation and state changes must work identically without it.
+Same-document view transitions (`view-transition-name`, `view-transition-class`, `::view-transition-*`) are Stable: direct on `modern`/`evergreen`, no `@supports`; unavailable on `enterprise`/`legacy` (not yet Baseline widely available). Always progressive enhancement regardless of profile: navigation and state changes must work identically without it. The CSS side is inert where unsupported, since the transition is started from script (`document.startViewTransition`), which must feature-detect itself.
+
+`:active-view-transition` is still Emerging: direct on `modern`, `@supports selector(:active-view-transition)`-gated on `evergreen`.
 
 ```css
-@supports (view-transition-name: none) {
-  @media (prefers-reduced-motion: no-preference) {
-    @layer components {
-      .card-hero {
-        view-transition-name: card-hero;
-        view-transition-class: card;
-      }
+@media (prefers-reduced-motion: no-preference) {
+  @layer components {
+    .card-hero {
+      view-transition-name: card-hero;
+      view-transition-class: card;
     }
   }
 }
@@ -341,7 +341,7 @@ Priority: MEDIUM — direct on `modern` (capability `true`); `@supports`-gated p
 
 Generate directly whenever the resolved profile's `anchor_positioning` capability is `true` or `optional`. This is no longer a "never generate unless asked" feature: it is the default technique for anchored overlays (tooltips, menus, popovers, comboboxes) on `modern`/`evergreen`, ahead of a JavaScript positioning library.
 
-Support is uneven across the feature's own properties. `anchor-name`, `position-area` and `position-try-fallbacks` reached Baseline in 2026; `position-anchor` has not. Detect the part that has not shipped — `@supports (position-anchor: --a)` — because a guard written against `anchor-name` passes in engines that cannot actually position the element, which is worse than no guard at all.
+Support arrived in pieces. `anchor-name`, `position-area` and `position-try-fallbacks` reached Baseline early in 2026; `position-anchor` was last, in September 2026 (Safari 27). Detect the last piece — `@supports (position-anchor: --a)` — because a guard written against `anchor-name` passes in engines from before September 2026 that cannot actually position the element, which is worse than no guard at all.
 
 ```css
 @supports (position-anchor: --a) {

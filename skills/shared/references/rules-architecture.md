@@ -15,7 +15,7 @@ Layer contract:
 | Layer | Contains | Never contains |
 | ----- | -------- | -------------- |
 | `reset` | Normalization, box-sizing | Component styles |
-| `tokens` | `:root` custom properties, `@property` registrations | Selectors other than `:root` / `::backdrop` |
+| `tokens` | `:root` custom properties, `@property` registrations, `@font-face` | Selectors other than `:root` / `::backdrop` |
 | `base` | Element defaults (`body`, `a`, `h1`–`h6`) | Class selectors |
 | `layout` | Page-level scaffolding (shells, grids, regions) | Component internals |
 | `components` | Component classes | Page-specific overrides |

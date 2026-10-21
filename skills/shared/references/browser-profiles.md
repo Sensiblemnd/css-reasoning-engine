@@ -12,6 +12,12 @@
 > `sibling-index()`, `line-clamp`, `mask-image`, `corner-shape`, `border-shape`. Emerging ages recomputed
 > to that date; `::details-content` and `overflow-inline`/`-block` promoted to Stable by the 12-month rule.
 > Every other row still carries the 2026-09-09 verification.
+>
+> 2026-10-20: same-document View Transitions promoted to Stable (12 months since 2025-10-14).
+> Re-checked the same day: `position-anchor` is Baseline newly available since 2026-09 (the anchor
+> split note is updated); `border-shape` now ships in Chromium; scroll-driven animations are still
+> blocked by Firefox.
+> Next crossings: `:active-view-transition` 2027-01-13, `shape()` 2027-02-24, `@scope` 2027-03-24.
 
 ## Profile Resolution
 
@@ -106,7 +112,7 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   linear_easing:                 #  true     true       true       false
   starting_style:                #  true     true       false      false
   scroll_driven_animations:      #  experimental — never without explicit request
-  view_transitions:              #  true     optional    false      false
+  view_transitions:              #  true     true       false      false
   active_view_transition:        #  true     optional    false      false
   view_transitions_cross_doc:    #  experimental — never without explicit request
   field_sizing:                  #  true     optional    false      false
@@ -168,14 +174,14 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `scrollbar-width` | 2024-12 (newly available; widely 2027-06) |
 | `::details-content` | 2025-09-16 (Firefox 143; newly available, > 12mo — Stable as of 2026-09-16) |
 | `overflow-inline` / `overflow-block` | 2025-09 (Safari 26; newly available, > 12mo — Stable) |
+| View Transitions, same-document (`view-transition-name`, `view-transition-class`, `::view-transition-*`) | 2025-10-14 (Firefox 144; newly available, > 12mo — Stable as of 2026-10-14) |
 
 ### Emerging
 
 | Feature | Baseline since (last engine) | Age as of 2026-10-12 |
 | ------- | --------------- | --------------------- |
-| Anchor Positioning (`anchor-name`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026 — but see the split note below | partial |
+| Anchor Positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026-09-14 (Safari 27, the last engine to ship `position-anchor`) — see the split note below | ~1.2 months |
 | `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~6.6 months |
-| View Transitions, same-document (`view-transition-name`, `view-transition-class`, `::view-transition-*`) | 2025-10-14 (Firefox 144) | ~11.9 months — crosses to Stable on 2026-10-14; promote on the next pass |
 | `:active-view-transition` | 2026-01-13 | ~9 months |
 | `@container style()` | 2026-05-19 (Firefox 151) | ~4.8 months |
 | `field-sizing` | 2026-06-16 (Firefox 152) | ~3.9 months |
@@ -186,19 +192,20 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `:open` | 2026-05-11 | ~5 months |
 | `scrollbar-color` | 2025-12 (MDN "Baseline 2025") | ~10 months |
 
-**Anchor Positioning is split and must be feature-detected on its weakest part.** `anchor-name`, `position-area` and `position-try-fallbacks` are Baseline 2026 newly available, but `position-anchor` is still Limited availability, and grouped Baseline data (webstatus.dev `anchor-positioning`) therefore reports the whole feature as not Baseline. Treat it as Emerging and key the `@supports` guard to `position-anchor`, never to `anchor-name` — guarding on the part that already shipped everywhere detects nothing. Re-check this split on the next verification pass; it is the row most likely to have moved.
+**Anchor Positioning shipped in pieces and must be feature-detected on the last one.** `anchor-name`, `position-area` and `position-try-fallbacks` reached Baseline early in 2026; `position-anchor` only became Baseline newly available in September 2026 (Safari 27, 2026-09-14; MDN banner re-checked 2026-10-20). Grouped Baseline data (webstatus.dev `anchor-positioning`) still reports the whole feature as Limited availability (caniuse marks Chrome, Edge and Firefox as partial), so treat it as Emerging. Key the `@supports` guard to `position-anchor`, never to `anchor-name`: Safari 26 and other engines from before September 2026 have `anchor-name` but cannot position the element, so a guard on it detects nothing. The 12-month Stable crossing is 2026-09-14 + 12 months = 2027-09-14, assuming the grouped status catches up.
 
 ### Experimental
 
 | Feature | Why |
 | ------- | --- |
-| Scroll-driven animations (`animation-timeline: scroll()`/`view()`, `animation-range`, `view-timeline-name`, `timeline-scope`) | Not Baseline — Chrome 115 (2023-07), Safari 26 (2025-09), **Firefox has not shipped it**. Previously mis-tiered as Stable in this file; corrected 2026-09-09. |
+| Scroll-driven animations (`animation-timeline: scroll()`/`view()`, `animation-range`, `view-timeline-name`, `timeline-scope`) | Not Baseline — Chrome 115 (2023-07), Safari 26 (2025-09), **Firefox has not shipped it** (re-checked 2026-10-20 on web-features: "blocked since September 2025 by Firefox"; ignore secondary sources claiming it is everywhere). Previously mis-tiered as Stable in this file; corrected 2026-09-09. |
 | View Transitions, cross-document (`@view-transition`, `navigation: auto`) | Not Baseline — Firefox has not shipped it |
 | `@container scroll-state()` (`stuck`, `snapped`, `scrollable`) | Not Baseline — Firefox has not shipped it |
 | `overscroll-behavior` | Not Baseline — Safari has not shipped it |
 | `prefers-reduced-transparency` | Not Baseline — Firefox has not shipped it. **Exception: generate on every profile anyway.** An unsupported engine never matches the query, leaving the base styling untouched, so there is no broken state to guard against and no fallback to write. See rules-a11y-performance.md, Transparency. |
 | `corner-shape` (and `superellipse()`) | Not Baseline — Chromium only (139+); Firefox and Safari have not shipped it. **Safe-degrading:** an unsupported engine draws the plain `border-radius`, so when explicitly requested it needs no `@supports` guard. See rules-advanced.md, Shapes and Clipping. |
-| `border-shape` | Not Baseline — not in a stable release of any major engine |
+| `border-shape` | Not Baseline — Chromium only (Chrome/Edge 155+ as of 2026-10); Firefox and Safari have not shipped it |
+| Anchored container queries (`@container anchored(fallback: …)`), scroll-triggered animations (`animation-trigger`), CSS `inherit()` | Not Baseline — the first two are Chromium only; `inherit()` is unshipped. All three are Interop 2027 proposals as of 2026-10; re-check when the Interop 2027 list is final. |
 | `if()`, `@function`, `@mixin`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
 | `random()`, `text-fit`, `background-clip: border-area`, typed `attr()` (`attr(data-x type(<number>))`, or `attr()` in any property other than `content`) | Not Baseline. These drive much of the current demo content (css-tip, css-articles), which is exactly where they get copied from. Never generate unless requested. |
 | Unprefixed `line-clamp` | Not Baseline (MDN: limited availability). Alone it does nothing in most engines; use the `-webkit-line-clamp` triplet, which every engine supports and the spec keeps as a legacy alias. |

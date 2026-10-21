@@ -32,9 +32,10 @@ skills/
 └── css-refactor/SKILL.md
 tests/                             # zero-dependency linter for the rules
 ├── lint.mjs                       # rule engine + CLI
-├── run.sh                         # self-test, then gate repo stylesheets
+├── run.sh                         # self-test, then gate repo stylesheets and skill examples
 ├── README.md
-└── fixtures/                      # compliant.css + annotated violations.css
+├── fixtures/                      # compliant.css + annotated violations.css
+└── benchmarks/                    # skill-judgment fixtures, not run by the suite
 docs/                              # static GitHub Pages site, no build step
 .github/workflows/lint.yml         # runs tests/run.sh on push and PR
 ```
@@ -46,7 +47,7 @@ Each SKILL.md is a lean core (philosophy, workflow, checklists) that references 
 The mechanically checkable subset of the rules is enforced by a zero-dependency linter, so the rules are executable and not just documentation:
 
 ```sh
-./tests/run.sh                    # self-test the linter, then gate docs/styles.css
+./tests/run.sh                    # self-test the linter, then gate docs/styles.css and skill examples
 node tests/lint.mjs path/to.css   # lint any stylesheet
 node tests/lint.mjs --list-rules  # every rule and what it enforces
 ```
