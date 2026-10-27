@@ -105,7 +105,8 @@ Typography:
 - Numbers that tick or align in columns? → `font-variant-numeric: tabular-nums`. Custom link underline? → `text-underline-offset`/`text-decoration-thickness`, never `border-bottom`.
 
 Interaction:
-- Styled scrollbar? → `scrollbar-width`/`scrollbar-color` with tokens, no `@supports`, never `::-webkit-scrollbar` on `modern`/`evergreen`; never `scrollbar-width: none` on content that must be scrolled (see [rules-interaction.md](../shared/references/rules-interaction.md) Scrollbar Styling).
+- Styled scrollbar? → `scrollbar-width`/`scrollbar-color` with tokens, no `@supports`, never `::-webkit-scrollbar` on `modern`/`evergreen`; never `scrollbar-width: none` on content that must be scrolled; never `@supports selector(::-webkit-scrollbar)` (see [rules-interaction.md](../shared/references/rules-interaction.md) Scrollbar Styling).
+- Marking search matches or other text ranges from script? → `::highlight()` with the Custom Highlight API, not wrapper `<span>`s; `<mark>` in the HTML when the marking must be announced (see [rules-interaction.md](../shared/references/rules-interaction.md) Custom Highlights).
 - Hover-only visual effect? → inside `@media (hover: hover)`, with the same affordance reachable via `:focus-visible` (see [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) Pointer and Touch).
 - Interactive target? → at least `--size-target-min` (24×24 CSS px) in both axes.
 - Sticky/fixed header or bottom bar? → `scroll-padding-block-*` on the scroller so focused elements aren't hidden under it.
@@ -145,12 +146,12 @@ Load the reference file when the task touches its topic:
 | Prohibited patterns (Required: load for every task) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
 | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
 | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-| Grid, Flexbox, logical properties, container queries/units, overflow, viewport units, print | [rules-layout.md](../shared/references/rules-layout.md) |
-| Tokens, OKLCH, `light-dark()`, `color-mix()`, relative colors, `clamp()`, `text-wrap`, hyphenation, `line-height`, line clamping, tabular numbers, link underlines | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
-| Focus, motion, flashing, contrast, forced colors, zoom, orientation, `contain`, `content-visibility`, animation performance, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
+| Grid, Flexbox, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, overflow, viewport units, safe-area insets, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
+| Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `text-wrap`, hyphenation, `line-height`, line clamping, tabular numbers, link underlines, `text-box-trim`, WCAG AA contrast ratios and paired tokens | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+| Focus, pointer and touch (hover, target size), motion, flashing, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, orientation, semantic HTML compatibility, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance, reflow, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
 | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
 | `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
-| Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
+| Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, custom highlights (`::highlight()`), `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 
 # Prohibited Patterns
 

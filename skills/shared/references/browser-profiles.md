@@ -17,7 +17,16 @@
 > Re-checked the same day: `position-anchor` is Baseline newly available since 2026-09 (the anchor
 > split note is updated); `border-shape` now ships in Chromium; scroll-driven animations are still
 > blocked by Firefox.
-> Next crossings: `:active-view-transition` 2027-01-13, `shape()` 2027-02-24, `@scope` 2027-03-24.
+>
+> 2026-10-26: Emerging ages recomputed to this date; no feature crossed the 12-month line. Added
+> `light-dark()` with images (Baseline 2026-09-14, Emerging; the color form stays Stable) and
+> `::highlight()` (MDN "newly available since March 2026"; the day is not verified, and the banner conflicts with
+> Firefox 140's 2025 support, so re-check it). `mask` and `linear()` reached widely available in 2026-06.
+> Firefox 156 now reports `selector(::-webkit-scrollbar)` as unsupported on every site (see rules-interaction.md).
+> Next crossings to Stable: `scrollbar-color` 2026-12, `:active-view-transition` 2027-01-13, `shape()` 2027-02-24,
+> `::highlight()` 2027-03, `@scope` 2027-03-24.
+> Next crossing to widely available: `light-dark()` and `text-wrap: balance` 2026-11-13, which flips `light_dark`
+> to `true` on `enterprise`.
 
 ## Profile Resolution
 
@@ -87,7 +96,8 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   anchor_positioning:            #  true     optional    false      false
 
   # Color and Typography
-  light_dark:                    #  true     true       false      false
+  light_dark:                    #  true     true       false      false   (color arguments)
+  light_dark_images:             #  true     optional    false      false
   color_mix:                     #  true     true       true       false
   oklch:                         #  true     true       true       false
   relative_colors:               #  true     true       false      false
@@ -100,6 +110,7 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   popover:                       #  true     true       false      false
   open_pseudo:                   #  true     optional    false      false
   details_content:               #  true     true       false      false
+  custom_highlights:             #  true     true       false      false   (Emerging but safe-degrading: unguarded on evergreen)
   overscroll_behavior:           #  experimental — never without explicit request
   scroll_state_queries:          #  experimental — never without explicit request
   reduced_transparency:          #  true     true       true       true   (safe-degrading; see Experimental table)
@@ -156,7 +167,7 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | Feature | Baseline since |
 | ------- | --------------- |
 | Cascade Layers, Grid, Subgrid, Flexbox, Nesting, Container Queries (size), `clamp()`, `:has()`, `:is()`, `:where()`, logical properties, `color-mix()`, OKLCH, `dvh`/`svh`/`lvh`, `aspect-ratio`, `:user-valid`/`:user-invalid`, `accent-color` | widely available |
-| `light-dark()`, `text-wrap: balance` | 2024-05-13 (newly available; widely 2026-11) |
+| `light-dark()` (color arguments), `text-wrap: balance` | 2024-05-13 (newly available; widely 2026-11-13). Image arguments are Emerging, below |
 | `@property` | 2024-07-09 (newly available; widely 2027-01) |
 | `@starting-style` | 2024-08-06 (newly available; widely 2027-02) |
 | Relative color syntax (`oklch(from …)`) | 2024-09-16 (newly available; widely 2027-03) |
@@ -168,8 +179,8 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `clip-path` basic shapes (`inset()`, `circle()`, `ellipse()`, `polygon()`, `path()`) | widely available since 2020 |
 | `prefers-reduced-motion`, `prefers-color-scheme` | widely available (2022-07-15) |
 | `prefers-contrast` | widely available (2024-11-30) |
-| `mask`, `mask-image` (unprefixed) | 2023-12 (newly available; widely 2026-06) |
-| `linear()` easing | 2023-12 (newly available; widely 2026-06) |
+| `mask`, `mask-image` (unprefixed) | widely available (2026-06; newly available 2023-12) |
+| `linear()` easing | widely available (2026-06; newly available 2023-12) |
 | `overflow: clip` | widely available (Safari 16, 2022-09) |
 | `scrollbar-width` | 2024-12 (newly available; widely 2027-06) |
 | `::details-content` | 2025-09-16 (Firefox 143; newly available, > 12mo — Stable as of 2026-09-16) |
@@ -178,19 +189,21 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 
 ### Emerging
 
-| Feature | Baseline since (last engine) | Age as of 2026-10-12 |
+| Feature | Baseline since (last engine) | Age as of 2026-10-26 |
 | ------- | --------------- | --------------------- |
-| Anchor Positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026-09-14 (Safari 27, the last engine to ship `position-anchor`) — see the split note below | ~1.2 months |
-| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~6.6 months |
-| `:active-view-transition` | 2026-01-13 | ~9 months |
-| `@container style()` | 2026-05-19 (Firefox 151) | ~4.8 months |
-| `field-sizing` | 2026-06-16 (Firefox 152) | ~3.9 months |
-| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~1.8 months |
-| `contrast-color()` | 2026-04-10 | ~6 months |
-| `shape()` | 2026-02-24 | ~7.6 months |
-| `sibling-index()` / `sibling-count()` | 2026-08 (re-checked 2026-10-12: MDN "Baseline 2026, newly available since August 2026") | ~1.8 months |
-| `:open` | 2026-05-11 | ~5 months |
-| `scrollbar-color` | 2025-12 (MDN "Baseline 2025") | ~10 months |
+| Anchor Positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026-09-14 (Safari 27, the last engine to ship `position-anchor`) — see the split note below | ~1.4 months |
+| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~7.1 months |
+| `:active-view-transition` | 2026-01-13 | ~9.4 months |
+| `@container style()` | 2026-05-19 (Firefox 151) | ~5.2 months |
+| `field-sizing` | 2026-06-16 (Firefox 152) | ~4.3 months |
+| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~2.3 months |
+| `contrast-color()` | 2026-04-10 | ~6.5 months |
+| `shape()` | 2026-02-24 | ~8 months |
+| `sibling-index()` / `sibling-count()` | 2026-08 (re-checked 2026-10-12: MDN "Baseline 2026, newly available since August 2026") | ~2.3 months |
+| `:open` | 2026-05-11 | ~5.5 months |
+| `scrollbar-color` | 2025-12 (MDN "Baseline 2025") | ~10.8 months |
+| `light-dark()` with `<image>` arguments | 2026-09-14 (Safari 27) | ~1.4 months |
+| `::highlight()` (CSS Custom Highlight API) | 2026-03 (MDN "Baseline 2026, newly available since March 2026"; day not verified) | ~7 months |
 
 **Anchor Positioning shipped in pieces and must be feature-detected on the last one.** `anchor-name`, `position-area` and `position-try-fallbacks` reached Baseline early in 2026; `position-anchor` only became Baseline newly available in September 2026 (Safari 27, 2026-09-14; MDN banner re-checked 2026-10-20). Grouped Baseline data (webstatus.dev `anchor-positioning`) still reports the whole feature as Limited availability (caniuse marks Chrome, Edge and Firefox as partial), so treat it as Emerging. Key the `@supports` guard to `position-anchor`, never to `anchor-name`: Safari 26 and other engines from before September 2026 have `anchor-name` but cannot position the element, so a guard on it detects nothing. The 12-month Stable crossing is 2026-09-14 + 12 months = 2027-09-14, assuming the grouped status catches up.
 

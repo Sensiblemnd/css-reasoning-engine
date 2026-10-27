@@ -145,6 +145,14 @@
       opacity: 1;
     }
   }
+
+  /* Firefox 156+ reports ::-webkit-scrollbar unsupported but still applies it on some sites. */
+  /* expect: no-invalid-supports-guard */
+  @supports not selector(::-webkit-scrollbar) {
+    .panel-body {
+      scrollbar-width: thin;
+    }
+  }
 }
 
 @layer components {

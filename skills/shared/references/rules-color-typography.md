@@ -62,6 +62,21 @@ Priority: HIGH
 ```
 
 - The light values sit outside the query, so an engine that doesn't support it gets a complete light theme.
+- `light-dark()` with `<image>` arguments (`light-dark(url(…), url(…))`) is Emerging (Baseline 2026-09-14), separate from the Stable color form. Use it only where an image must follow an element-level `color-scheme` that differs from the page's. Otherwise swap image tokens in the `prefers-color-scheme` query above, which works on every profile. Direct on `modern`; on `evergreen`, put it inside `@supports` with the token swap outside as the default; never on `enterprise`/`legacy`:
+
+```css
+@layer components {
+  .hero {
+    background-image: var(--image-hero); /* default: swapped by the prefers-color-scheme query in tokens */
+  }
+
+  @supports (background-image: light-dark(url(""), url(""))) {
+    .hero {
+      background-image: light-dark(var(--image-hero-light), var(--image-hero-dark));
+    }
+  }
+}
+```
 - Prefer `color-mix()` for derived states (hover, disabled, tint) over new literal values:
 
 ```css

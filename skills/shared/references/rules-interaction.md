@@ -1,4 +1,4 @@
-# Interaction Rules: Scroll Snap, Overscroll, Scrollbars, Overlays, Details Disclosure, Scroll-State Queries, Carousels
+# Interaction Rules: Scroll Snap, Overscroll, Scrollbars, Overlays, Details Disclosure, Custom Highlights, Scroll-State Queries, Carousels
 
 ## Scroll Snap — Stability: Stable
 
@@ -56,6 +56,7 @@ Priority: LOW
 - `scrollbar-color` is Emerging but needs no `@supports` guard: an engine without it ignores the declaration and draws its default scrollbar, which is a correct state. `scrollbar-color` takes thumb then track, and both must be tokens with at least 3:1 contrast against each other (a scrollbar is a UI control, WCAG 1.4.11).
 - Never `scrollbar-width: none` on content the user has to scroll. It removes the only visible sign that more content exists and the mouse user's drag handle. Exception: a scroller with its own visible controls (a carousel with previous/next buttons), documented at the use site.
 - `::-webkit-scrollbar` is acceptable only on `enterprise`/`legacy` as the profile's fallback, and only on elements where `scrollbar-color` is not set.
+- Never choose between the two with `@supports selector(::-webkit-scrollbar)` or `@supports not selector(::-webkit-scrollbar)`. Since Firefox 156, Firefox reports the pseudo-element as unsupported on every site but still applies `::-webkit-scrollbar` rules on some, so the guard no longer tells engines apart. Separate the two by element, per the previous rule.
 
 ```css
 @layer components {
@@ -141,6 +142,27 @@ Priority: LOW — direct on `modern`/`evergreen`; unavailable on `enterprise`/`l
     .disclosure:where([open])::details-content {
       opacity: 1;
     }
+  }
+}
+```
+
+## Custom Highlights: `::highlight()` — Stability: Emerging (safe-degrading)
+
+Priority: LOW — direct on `modern`/`evergreen` without `@supports`; unavailable on `enterprise`/`legacy` (not yet Baseline widely available).
+
+`::highlight(name)` styles text ranges that script registers with the CSS Custom Highlight API (`CSS.highlights.set(name, new Highlight(...ranges))`), without adding elements to the DOM.
+
+- Prefer `::highlight()` for find-in-page matches, spelling or grammar marks, and syntax coloring over wrapping ranges in `<span>`/`<mark>` elements from script. Wrapping splits text nodes, breaks the user's selection, and costs a DOM mutation per match.
+- Highlights are not exposed to assistive technology. When the marking is content (a search term in a results list that a screen reader should announce), use `<mark>` in the HTML instead.
+- The script feature-detects with `"highlights" in CSS` and does nothing without it, so the text stays unmarked, which is a correct state. No `@supports` guard is needed: an engine without the pseudo-element drops the rule by itself.
+- Never put `::highlight()` in a selector list with other selectors: one unknown pseudo-element invalidates the whole list, so those selectors are dropped too.
+- Only text-paint properties apply (`color`, `background-color`, `text-decoration`, `text-shadow`). Never rely on layout or box properties here; they are ignored.
+
+```css
+@layer components {
+  ::highlight(search-match) {
+    background-color: var(--color-highlight);
+    color: var(--color-on-highlight);
   }
 }
 ```

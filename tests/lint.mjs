@@ -551,6 +551,9 @@ const RULES = [
       if (/\(\s*anchor-name\s*:/i.test(p)) {
         report(node.line, "`anchor-name` is Baseline and detects nothing; guard on `position-anchor`.");
       }
+      if (/selector\s*\(\s*::-webkit-scrollbar/i.test(p)) {
+        report(node.line, "`selector(::-webkit-scrollbar)` no longer tells engines apart: Firefox 156+ reports it unsupported but still applies it on some sites.");
+      }
     },
   },
   {

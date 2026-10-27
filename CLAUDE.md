@@ -36,12 +36,12 @@ skills/
 │   ├── browser-profiles.md      # profile resolution, capability map, @supports rules
 │   ├── prohibited-patterns.md   # canonical never-generate list, with per-role handling
 │   ├── rules-architecture.md    # cascade layers, imports, component boundaries, specificity, nesting, @scope
-│   ├── rules-layout.md          # Grid/Flexbox, logical properties, container queries, overflow, viewport units
-│   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), clamp(), text-wrap, line-height, line clamping
+│   ├── rules-layout.md          # Grid/Flexbox, subgrid, logical properties, container queries, overflow, viewport units, safe-area insets, print, :has()
+│   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), contrast-color(), clamp(), text-wrap, text-box-trim, line-height, line clamping
 │   ├── rules-a11y-performance.md # focus, pointer/touch, motion (pause, flashing), contrast, forced-colors, zoom/orientation, containment, animation cost, @font-face
-│   ├── rules-forms.md           # validation states, control text size, native control color, labels/placeholder
-│   ├── rules-interaction.md     # scroll snap, scrollbars, overlays/top layer, :open, ::details-content, scroll-state, carousels
-│   └── rules-advanced.md        # @property, @starting-style, scroll-driven animations, shapes/clipping, View Transitions, Anchor Positioning
+│   ├── rules-forms.md           # validation states, control text size, native control color, field-sizing, labels/placeholder
+│   ├── rules-interaction.md     # scroll snap, overscroll, scrollbars, overlays/top layer, :open, ::details-content, ::highlight(), scroll-state, carousels
+│   └── rules-advanced.md        # @property, @starting-style, scroll-driven animations, shapes/clipping, View Transitions, Anchor Positioning, @function
 ├── css-engineer/SKILL.md  # role: generate new CSS
 ├── css-reviewer/SKILL.md  # role: audit existing CSS, report structured findings, never rewrite
 └── css-refactor/SKILL.md  # role: modernize CSS without changing rendering
@@ -50,7 +50,9 @@ planning/       # original project briefs, not part of the published site
 tests/          # zero-dependency linter for the mechanically checkable rules
 ├── lint.mjs        # rule engine + CLI (--self-test, --list-rules)
 ├── run.sh          # self-test, then gate repo stylesheets and skill examples
-└── fixtures/       # compliant.css (must be clean) + violations.css (annotated)
+├── README.md       # rule table, anti-example markers, benchmark notes
+├── fixtures/       # compliant.css (must be clean) + violations.css (annotated) + examples.md (extraction test)
+└── benchmarks/     # skill-judgment fixtures (product-card.css), not run by the suite
 ```
 
 All three skills route into the same `skills/shared/references/` files so the rules cannot drift between generating, reviewing, and refactoring. When editing any rule, update it in `shared/references/` — never fork a rule into a single skill's own `SKILL.md`.

@@ -106,6 +106,7 @@ After:
 - Unit `line-height` → unitless ratio (`24px` at `font-size: 16px` → `1.5`). Risk: `none` only when no descendant sets a different `font-size`; otherwise `follow-up`, because those descendants' line spacing changes (that change is the fix, but it is a rendering change).
 - `-webkit-line-clamp` missing `display: -webkit-box` / `-webkit-box-orient: vertical`, or unprefixed `line-clamp` alone → `follow-up`. Completing the triplet makes a clamp that never worked start working.
 - `::-webkit-scrollbar` styling → `scrollbar-width`/`scrollbar-color` → `follow-up`. The standard properties can't reproduce custom widths, radii, or buttons, so rendering changes in every engine.
+- `@supports selector(::-webkit-scrollbar)` / `not selector(::-webkit-scrollbar)` guard → `follow-up`. Since Firefox 156 the guard picks a different branch in Firefox than before, so removing or rewriting it changes rendering there; report it, don't rewrite it.
 - `display: flex`/`grid` on a running-text container → `follow-up`. Removing it re-flows the text.
 
 ## Text-size and control-zoom fixes → follow-up ([rules-forms.md](../shared/references/rules-forms.md))
