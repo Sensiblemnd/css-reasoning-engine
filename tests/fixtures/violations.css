@@ -217,3 +217,45 @@
     font-display: swap;
   }
 }
+
+@layer components {
+  /* Some engines drop the list's role, so its items stop being announced as a list. */
+  .feature-grid > ul {
+    /* expect: no-semantic-display-contents */
+    display: contents;
+  }
+
+  /* A :where() list naming a heading counts too. */
+  .card :where(div, h2) {
+    /* expect: no-semantic-display-contents */
+    display: contents;
+  }
+
+  /* :is() later in the compound, with a nested pseudo-class before the list. */
+  .menu :where(div:not(.x), ul) {
+    /* expect: no-semantic-display-contents */
+    display: contents;
+  }
+
+  /* Nested: the subject resolves through & to the parent ul. */
+  .site-nav ul {
+    &.flat {
+      /* expect: no-semantic-display-contents */
+      display: contents;
+    }
+  }
+
+  /* Replaced elements: display: contents hides the image and its alt text. */
+  .gallery > img {
+    /* expect: no-semantic-display-contents */
+    display: contents;
+  }
+}
+
+@layer overrides {
+  /* !important does not hide the declaration from the check. */
+  .promo ul {
+    /* expect: no-semantic-display-contents */
+    display: contents !important;
+  }
+}

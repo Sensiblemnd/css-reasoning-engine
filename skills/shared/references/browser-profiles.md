@@ -25,8 +25,13 @@
 > Firefox 156 now reports `selector(::-webkit-scrollbar)` as unsupported on every site (see rules-interaction.md).
 > Next crossings to Stable: `scrollbar-color` 2026-12, `:active-view-transition` 2027-01-13, `shape()` 2027-02-24,
 > `::highlight()` 2027-03, `@scope` 2027-03-24.
-> Next crossing to widely available: `light-dark()` and `text-wrap: balance` 2026-11-13, which flips `light_dark`
-> to `true` on `enterprise`.
+> Next crossings to widely available: `light-dark()` and `text-wrap: balance` 2026-11-13, which flips `light_dark`
+> to `true` on `enterprise`; `round()`/`mod()`/`rem()` 2026-11, which flips `stepped_value_functions`.
+>
+> 2026-10-26, later: added `lh`/`rlh` (widely available; Firefox 120, 2023-11-21, was last), `round()` (MDN
+> "Baseline 2024, newly available since May 2024"), `display: contents` (rendering in every engine; the
+> accessibility bugs are not part of Baseline, see rules-layout.md), and `flex-wrap: balance`/`flex-line-count`
+> (Chromium 150+ only, Experimental).
 
 ## Profile Resolution
 
@@ -93,6 +98,10 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   line_clamp_unprefixed:         #  experimental — use the -webkit-line-clamp triplet (rules-color-typography.md)
   logical_properties:            #  true     true       true       true
   clamp:                         #  true     true       true       true
+  stepped_value_functions:       #  true     true       false      false   (round(), mod(), rem())
+  lh_units:                      #  true     true       true       false
+  display_contents:              #  true     true       true       false   (generic wrappers only; see rules-layout.md)
+  flex_wrap_balance:             #  experimental — only on explicit request; no @supports (safe-degrading to flex-wrap: wrap)
   anchor_positioning:            #  true     optional    false      false
 
   # Color and Typography
@@ -182,6 +191,10 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `mask`, `mask-image` (unprefixed) | widely available (2026-06; newly available 2023-12) |
 | `linear()` easing | widely available (2026-06; newly available 2023-12) |
 | `overflow: clip` | widely available (Safari 16, 2022-09) |
+| `lh` / `rlh` units | widely available (2026-05; newly available 2023-11-21, Firefox 120) |
+| `round()`, `mod()`, `rem()` | 2024-05 (newly available, > 12mo — Stable; widely 2026-11) |
+| `display: contents` | rendering supported in every engine for years; Baseline does not cover its accessibility-tree bugs, so it is restricted to generic wrappers (rules-layout.md) |
+| `grid-template-areas` / `grid-area` | widely available (part of Grid) |
 | `scrollbar-width` | 2024-12 (newly available; widely 2027-06) |
 | `::details-content` | 2025-09-16 (Firefox 143; newly available, > 12mo — Stable as of 2026-09-16) |
 | `overflow-inline` / `overflow-block` | 2025-09 (Safari 26; newly available, > 12mo — Stable) |
@@ -218,6 +231,7 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `prefers-reduced-transparency` | Not Baseline — Firefox has not shipped it. **Exception: generate on every profile anyway.** An unsupported engine never matches the query, leaving the base styling untouched, so there is no broken state to guard against and no fallback to write. See rules-a11y-performance.md, Transparency. |
 | `corner-shape` (and `superellipse()`) | Not Baseline — Chromium only (139+); Firefox and Safari have not shipped it. **Safe-degrading:** an unsupported engine draws the plain `border-radius`, so when explicitly requested it needs no `@supports` guard. See rules-advanced.md, Shapes and Clipping. |
 | `border-shape` | Not Baseline — Chromium only (Chrome/Edge 155+ as of 2026-10); Firefox and Safari have not shipped it |
+| `flex-wrap: balance`, `flex-line-count` | Not Baseline — Chromium only (Chrome/Edge 150+); caniuse lists Firefox and Safari as unsupported as of 2026-10. **Safe-degrading:** declared after `flex-wrap: wrap`, other engines keep normal wrapping, so when explicitly requested it needs no `@supports` guard. See rules-layout.md, Grid vs Flexbox vs Flow. |
 | Anchored container queries (`@container anchored(fallback: …)`), scroll-triggered animations (`animation-trigger`), CSS `inherit()` | Not Baseline — the first two are Chromium only; `inherit()` is unshipped. All three are Interop 2027 proposals as of 2026-10; re-check when the Interop 2027 list is final. |
 | `if()`, `@function`, `@mixin`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
 | `random()`, `text-fit`, `background-clip: border-area`, typed `attr()` (`attr(data-x type(<number>))`, or `attr()` in any property other than `content`) | Not Baseline. These drive much of the current demo content (css-tip, css-articles), which is exactly where they get copied from. Never generate unless requested. |

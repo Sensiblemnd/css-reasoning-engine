@@ -108,6 +108,13 @@ After:
 - `::-webkit-scrollbar` styling → `scrollbar-width`/`scrollbar-color` → `follow-up`. The standard properties can't reproduce custom widths, radii, or buttons, so rendering changes in every engine.
 - `@supports selector(::-webkit-scrollbar)` / `not selector(::-webkit-scrollbar)` guard → `follow-up`. Since Firefox 156 the guard picks a different branch in Firefox than before, so removing or rewriting it changes rendering there; report it, don't rewrite it.
 - `display: flex`/`grid` on a running-text container → `follow-up`. Removing it re-flows the text.
+- A `px` cap or fade sized to N lines → `Nlh`. Risk: `low` only when the `px` value equals N × the computed line height at the default font size (then rendering is identical until the user scales text); otherwise `follow-up`.
+- A `px` nudge aligning an icon with a label's first line → the `lh` offset. Risk: `follow-up`; the icon moves by however far the nudge was off.
+- `display: contents` on a semantic or interactive element → `follow-up`. Removing it brings the box back and changes the layout; the fix needs a generic wrapper in the HTML.
+
+## Line-number placement → Named grid areas ([rules-layout.md](../shared/references/rules-layout.md))
+
+- Items re-placed by `grid-column`/`grid-row` line numbers in several queries → one `grid-area` name per item and per-query `grid-template-areas` on the container. Risk: `low`, and only when all of these hold (name them): every query's area map puts each item on exactly the lines it had; the map adds no rows or columns beyond the existing `grid-template-rows`/`-columns` (an area map makes those tracks explicit, so tracks sized by `grid-auto-rows`/`-columns` become `auto`); and no auto-placed item fills the cells the map now names. Otherwise `follow-up`.
 
 ## Text-size and control-zoom fixes → follow-up ([rules-forms.md](../shared/references/rules-forms.md))
 

@@ -42,6 +42,7 @@ is the authoritative list; this table is prose around it.
 | `no-invalid-supports-guard` | no `@supports` test that is invalid or detects nothing (`at-rule()`, `style()`, `result:`, `anchor-name`, `selector(::-webkit-scrollbar)`) |
 | `no-text-size-adjust-none` | never block the user's text-size setting (`100%` is allowed) |
 | `no-legacy-font-format` | no `eot`/`svg`/`truetype`/`opentype` sources in `@font-face` |
+| `no-semantic-display-contents` | `display: contents` only on generic wrappers, never on a button, link, heading, list, table element, landmark, or replaced element (`img`, `video`, `input`…); resolves `:is()`/`:where()` and nested `&`, ignores pseudo-elements |
 | `no-unit-line-height` | `line-height` is unitless (no `px`/`rem`/`em`/`%`) |
 | `incomplete-line-clamp` | `-webkit-line-clamp` has `display: -webkit-box` + `-webkit-box-orient: vertical`; no lone unprefixed `line-clamp` |
 | `no-root-overflow-x-hidden` | no `overflow-x`/`overflow-inline: hidden` on `html`/`body`/`:root` |

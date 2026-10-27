@@ -29,6 +29,7 @@ Never generate, accept, or leave in place:
 - Auto-playing motion longer than 5 seconds (marquee, ticker, looping background) with no pause on hover/focus and no reduced-motion stop (WCAG 2.2.2) — see [rules-a11y-performance.md](rules-a11y-performance.md) Pause, Stop, Hide.
 - `line-height` with a unit (`px`, `rem`, `em`, `%`) — see [rules-color-typography.md](rules-color-typography.md) Line Height.
 - `overflow-x: hidden` / `overflow-inline: hidden` on `html`/`body`/`:root` to mask horizontal overflow — see [rules-layout.md](rules-layout.md) Overflow. (`overflow: hidden` on the root as a modal scroll lock is a different pattern and is not covered by this item.)
+- `display: contents` on anything but a generic wrapper: interactive elements, headings, lists, table elements, landmarks, `article`/`figure`/`details`/`dialog`, form labels and legends (role or focusability lost), or replaced elements and form controls such as `img`, `video`, `iframe`, `svg`, `input` (they disappear, as with `display: none`) — see [rules-layout.md](rules-layout.md) Flattening Wrappers.
 - Orientation locking (rotating the root or hiding content under an `orientation` query) — see [rules-a11y-performance.md](rules-a11y-performance.md) Zoom and Scaling.
 - Meaning encoded by color alone.
 - Media queries that duplicate what a container query or `clamp()` already solves.

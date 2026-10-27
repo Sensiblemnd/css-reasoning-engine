@@ -49,13 +49,15 @@ Layout:
 - Two-dimensional placement (rows AND columns)? → Grid.
 - Alignment/distribution along one axis? → Flexbox.
 - Neither? → Normal flow. Never add `display: flex` or `display: grid` without a layout need, and never on a running-text container (paragraph, heading, label with inline elements).
+- Grid with three or more regions that rearrange across sizes? → `grid-template-areas` named by content role, and queries change only the container's areas, never each item's line numbers (see [rules-layout.md](../shared/references/rules-layout.md) Named Grid Areas).
+- A wrapper's children need to join the parent's grid or flex layout? → Subgrid if the wrapper keeps a visual job; otherwise `display: contents`, on a generic `div`/`span` only, never on a button, link, heading, list, table, or landmark, and never on `img`/`video`/`iframe`/`svg`/form controls, which it hides entirely (see [rules-layout.md](../shared/references/rules-layout.md) Flattening Wrappers).
 - Clipping overflow? → `overflow: clip`, not `hidden` (`hidden` creates a scroll container and breaks sticky descendants). Horizontal scroll on the page? → fix the overflowing element, never `overflow-x: hidden` on `html`/`body` (see [rules-layout.md](../shared/references/rules-layout.md) Overflow).
 
 Responsive:
 - Required baseline, always, regardless of whether the task mentions it: layouts adapt from narrow to wide viewports/containers — no fixed-width-only layout unless the context is explicitly fixed-size (email, print, fixed widget).
 - Behavior depends on the viewport (page structure, navigation)? → Media query.
 - Behavior depends on the component's own available space? → Container query.
-- Fluid scaling of one value? → `clamp()` with viewport or container units. No query.
+- Fluid scaling of one value? → `clamp()` with viewport or container units. No query. Must land on the type/spacing grid? → wrap it in `round(down, …, var(--type-step))` on `modern`/`evergreen` (see [rules-color-typography.md](../shared/references/rules-color-typography.md) Fluid Typography and Spacing).
 - Element's height spans/is bounded by the viewport on a mobile-affected layout? → Required: `dvh`, not bare `vh` (see Viewport Units).
 - Element is anchored to a physical viewport edge (fixed header/bottom bar, edge FAB, fullscreen modal/sheet)? → Required: `env(safe-area-inset-*)` padding, always, regardless of whether the task mentions notches/mobile (see Safe Area Insets).
 
@@ -101,6 +103,7 @@ Fonts:
 
 Typography:
 - `line-height`? → unitless, via a leading token. Never `px`/`rem`/`em`/`%`.
+- Size that must match N lines of text (a cap, a last-line fade, a per-line background)? → `Nlh`, never `px`. Icon beside a label that can wrap? → `align-items: start` plus `translate: 0 calc((1lh - <icon size>) / 2)`, never `align-items: center` or a `px` nudge (see [rules-color-typography.md](../shared/references/rules-color-typography.md) Line-Relative Sizing).
 - Truncate to N lines? → the `-webkit-line-clamp` triplet (`display: -webkit-box`, `-webkit-box-orient: vertical`, `-webkit-line-clamp`) plus `overflow: clip`, never unprefixed `line-clamp` alone; the full text stays reachable (see [rules-color-typography.md](../shared/references/rules-color-typography.md) Line Clamping).
 - Numbers that tick or align in columns? → `font-variant-numeric: tabular-nums`. Custom link underline? → `text-underline-offset`/`text-decoration-thickness`, never `border-bottom`.
 
@@ -146,8 +149,8 @@ Load the reference file when the task touches its topic:
 | Prohibited patterns (Required: load for every task) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
 | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
 | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-| Grid, Flexbox, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, overflow, viewport units, safe-area insets, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
-| Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `text-wrap`, hyphenation, `line-height`, line clamping, tabular numbers, link underlines, `text-box-trim`, WCAG AA contrast ratios and paired tokens | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+| Grid, named grid areas, Flexbox, `flex-wrap: balance`, `display: contents`, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, overflow, viewport units, safe-area insets, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
+| Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `round()`, `text-wrap`, hyphenation, `line-height`, `lh` units and icon alignment, line clamping, tabular numbers, link underlines, `text-box-trim`, WCAG AA contrast ratios and paired tokens | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
 | Focus, pointer and touch (hover, target size), motion, flashing, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, orientation, semantic HTML compatibility, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance, reflow, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
 | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
 | `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |

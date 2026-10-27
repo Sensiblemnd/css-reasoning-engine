@@ -1,4 +1,4 @@
-# Color and Typography Rules: Tokens, OKLCH, light-dark(), clamp(), text-wrap, line-height, line clamping, contrast-color(), text-box-trim
+# Color and Typography Rules: Tokens, OKLCH, light-dark(), clamp(), round(), text-wrap, line-height, lh units, line clamping, contrast-color(), text-box-trim
 
 ## Token System
 
@@ -147,6 +147,17 @@ Rules:
 
 - Required: `rem`-based bounds in `clamp()` so zoom and user font-size settings scale the result.
 - Never a `px`-only fluid expression — it breaks user font scaling.
+- Prefer `round()` when fluid values must land on the type or spacing grid, so a `clamp()` resolves to 20px or 24px instead of 19.7px. `round()` is Stable (Baseline 2024-05, widely available 2026-11): direct on `modern`/`evergreen`; on `enterprise`/`legacy` emit the plain `clamp()`, which is the same size before snapping. Round `down` so the result never exceeds the clamp's maximum, and take the interval from a token. An interval of `0` makes the whole value invalid.
+- A token holding container query units (`cqi`) is fine in `:root`: an unregistered custom property is substituted where it is used, so `cqi` resolves against the using element's container. Never register such a token with `@property` as a `<length>`. A registered length is computed on `:root`, where no container exists, so every component would get the same value.
+
+```css
+@layer tokens {
+  :root {
+    --type-step: 0.25rem;
+    --text-xl: round(down, clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem), var(--type-step));
+  }
+}
+```
 
 ## Text Wrapping
 
@@ -203,6 +214,39 @@ Priority: HIGH
 @layer base {
   :where(body) {
     line-height: var(--leading-body);
+  }
+}
+```
+
+## Line-Relative Sizing: `lh`
+
+Priority: MEDIUM
+
+`1lh` is the element's computed line height; `1rlh` is the root element's. Both are Baseline widely available, so they are direct on every profile but `legacy`. On `legacy`, use `em` multiplied by the leading token (`calc(5em * var(--leading-body))`).
+
+- Required: size anything that must match a number of text lines in `lh`, never in `px` or `rem`. That covers a cap on N lines (`max-block-size: 5lh`), a fade over the last line, and a background that repeats once per line. A `px` cap holds a different number of lines once the user enlarges text or overrides line spacing (WCAG 1.4.4, 1.4.12), so it cuts a line in half or leaves a gap. As with line clamping, the full content must stay reachable.
+- Required: to align an icon with the first line of a label that can wrap, use `align-items: start` and offset the icon by `calc((1lh - <icon size>) / 2)`. Never use `align-items: center`, which centers the icon on the whole label once it wraps, and never a hand-tuned `px` nudge, which breaks when the font, the icon or the leading changes. `1lh` resolves on the icon itself, from its own `font-size` times the unitless `line-height`, so the icon must inherit both from the same element as the label's text. Set any `font-size` on the row, never on the label alone, or the icon's `1lh` stops matching the label's first line. The offset goes negative when the icon is taller than a line, which is correct.
+- Prefer icon size tokens in `lh` or `em`, so icons scale with the text beside them.
+
+```css
+@layer components {
+  .feature-item {
+    display: flex;
+    align-items: start;
+    gap: var(--space-s);
+  }
+
+  .feature-item-icon {
+    flex-shrink: 0;
+    inline-size: var(--size-icon);
+    block-size: var(--size-icon);
+    translate: 0 calc((1lh - var(--size-icon)) / 2); /* centered on the first line */
+  }
+
+  .activity-preview {
+    max-block-size: 5lh;
+    overflow: clip; /* the full list is one link away */
+    mask-image: linear-gradient(to bottom, black calc(100% - 1lh), transparent);
   }
 }
 ```

@@ -204,6 +204,17 @@
       font-style: oblique 10deg;
     }
   }
+
+  /* Near-misses for no-semantic-display-contents: generic wrappers, and a
+     list or heading earlier in the selector rather than on the target. */
+  .feature-grid > .feature-group,
+  .prose p:has(> img:only-child),
+  ul .item-wrapper,
+  :where(h2) + :where(div),
+  .toc > :not(ul),
+  .feature-list li::before {
+    display: contents;
+  }
 }
 
 @layer overrides {

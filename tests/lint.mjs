@@ -278,6 +278,72 @@ function compoundCount(selector) {
   return parts;
 }
 
+// The last compound of one selector: `.list > li:first-child` → `li:first-child`.
+function lastCompound(selector) {
+  let depth = 0;
+  let start = 0;
+  const s = selector.trim();
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === "(" || ch === "[") depth++;
+    else if (ch === ")" || ch === "]") depth--;
+    else if (depth === 0 && (/\s/.test(ch) || ">+~".includes(ch))) start = i + 1;
+  }
+  return s.slice(start);
+}
+
+// Resolve `&` through the nesting chain so a nested rule's subject is known:
+// ["ul", "&.flat"] → ":is(ul).flat".
+function resolveNesting(chain) {
+  return chain.reduce((parent, sel) => (parent === null ? sel : sel.replaceAll("&", `:is(${parent})`)), null);
+}
+
+// Tag names the subject of one selector can be: `.list > li` → li,
+// `.x:is(ul, :where(ol))` → ul, ol. A pseudo-element subject yields none.
+function subjectTags(selector) {
+  const s = lastCompound(selector);
+  const tags = [];
+  const lead = s.match(/^[a-z][a-z0-9-]*/i);
+  if (lead) tags.push(lead[0].toLowerCase());
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === "(" || ch === "[") depth++;
+    else if (ch === ")" || ch === "]") depth--;
+    else if (depth === 0 && ch === ":") {
+      const rest = s.slice(i);
+      if (/^::|^:(before|after|first-line|first-letter)\b/i.test(rest)) return [];
+      const group = rest.match(/^:(?:is|where)\(/i);
+      if (!group) continue;
+      const open = i + group[0].length;
+      let d = 1;
+      let j = open;
+      while (j < s.length && d > 0) {
+        if (s[j] === "(") d++;
+        else if (s[j] === ")") d--;
+        j++;
+      }
+      for (const part of splitSelectors(s.slice(open, j - 1))) tags.push(...subjectTags(part));
+    }
+  }
+  return tags;
+}
+
+// Replaced elements and form controls: display: contents acts as display: none.
+const REPLACED_ELEMENTS = new Set([
+  "img", "video", "audio", "iframe", "canvas", "embed", "object", "svg",
+  "input", "select", "textarea", "meter", "progress",
+]);
+
+// Elements whose role or focusability display: contents can remove.
+const SEMANTIC_ELEMENTS = new Set([
+  "a", "button", "summary", "details", "dialog", "label", "legend", "option", "optgroup", "output",
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "ul", "ol", "li", "dl", "dt", "dd", "menu",
+  "table", "caption", "thead", "tbody", "tfoot", "tr", "th", "td",
+  "nav", "main", "header", "footer", "aside", "search", "article", "form", "fieldset", "figure",
+]);
+
 // ---------------------------------------------------------------- rules
 
 const RULES = [
@@ -619,6 +685,28 @@ const RULES = [
       );
       if (legacy) {
         report(node.line, `Legacy font source \`${legacy[1] ?? legacy[2]}\`; every supported engine uses woff2.`);
+      }
+    },
+  },
+  {
+    id: "no-semantic-display-contents",
+    doc: "rules-layout.md — display: contents only on generic wrappers",
+    check(node, ctx, report) {
+      if (node.type !== "rule") return;
+      const d = node.children.find(
+        (c) => c.type === "decl" && /^display$/i.test(c.prop) && /^contents(\s*!\s*important)?$/i.test(c.value.trim()),
+      );
+      if (!d) return;
+      const tags = new Set(splitSelectors(resolveNesting(ctx.selectorChain)).flatMap(subjectTags));
+      const list = (set) => [...tags].filter((t) => set.has(t)).map((t) => `\`${t}\``).join(", ");
+      const replaced = list(REPLACED_ELEMENTS);
+      const semantic = list(SEMANTIC_ELEMENTS);
+      // Lead with the selector: findings are de-duplicated by message text.
+      if (replaced) {
+        report(d.line, `\`${node.selector}\`: display: contents on ${replaced} acts as display: none and hides it entirely.`);
+      }
+      if (semantic) {
+        report(d.line, `\`${node.selector}\`: display: contents on ${semantic} can drop its role; use a generic wrapper.`);
       }
     },
   },

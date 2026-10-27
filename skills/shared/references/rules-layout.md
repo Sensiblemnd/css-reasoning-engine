@@ -1,4 +1,4 @@
-# Layout Rules: Grid, Flexbox, Logical Properties, Container Queries, Overflow, Units
+# Layout Rules: Grid, Named Areas, Flexbox, display: contents, Logical Properties, Container Queries, Overflow, Units
 
 ## Responsive Layout Baseline
 
@@ -45,9 +45,10 @@ Priority: HIGH
 - Two-dimensional placement (rows AND columns, overlap, explicit areas) → Required: Grid.
 - One-axis alignment or distribution → Required: Flexbox.
 - Plain stacked content → normal flow. Never add `display: grid`/`flex` without a layout need.
-- Never make a running-text container (a paragraph, a label, a heading with inline links/`<strong>`/`<code>`) a flex or grid container. Each text run and each inline element becomes a separate item: the spaces between them collapse, and the text stops wrapping as a paragraph. To align an icon with a label, wrap the text in its own element and flex the parent, or use `vertical-align`/`text-box-trim` on the icon.
+- Never make a running-text container (a paragraph, a label, a heading with inline links/`<strong>`/`<code>`) a flex or grid container. Each text run and each inline element becomes a separate item: the spaces between them collapse, and the text stops wrapping as a paragraph. To align an icon with a label, wrap the text in its own element and flex the parent, then center the icon on the first line with an `lh` offset ([rules-color-typography.md](rules-color-typography.md) Line-Relative Sizing), or use `vertical-align`/`text-box-trim` on the icon.
 - Prefer `gap` for spacing between siblings in any Grid/Flex context. Never simulate gap with child margins.
 - Masonry layout (`grid-template-rows: masonry`, `grid-lanes`) — Stability: Experimental, single-engine. Never generate unless explicitly requested; when requested, pair with a documented fallback (`auto-fit`/`auto-fill` column grid) for the profile's other capability-`false` targets. Do not invent masonry as the default answer to "Pinterest-style" layout requests — that is `auto-fit`/`auto-fill` with `minmax()` today (see Intrinsic Sizing below).
+- `flex-wrap: balance` and `flex-line-count` — Stability: Experimental, Chromium only (150+). Never generate unless explicitly requested. When requested, declare `flex-wrap: balance` after `flex-wrap: wrap` with no `@supports`: other engines ignore it and keep normal wrapping, which is a correct state. Never pair `flex-line-count` with `flex-direction: column` to fake masonry columns: the visual order then runs down the columns while reading and focus order run across them. The Stable answer to a lone item on the last wrapped row is `justify-content: center` on the container or a container query that changes the items' `flex-basis`.
 
 Preferred:
 
@@ -66,6 +67,88 @@ Avoid:
 ```css
 .media-object > * + * {
   margin-left: 16px; /* physical property + magic number + fake gap */
+}
+```
+
+### Named Grid Areas
+
+Priority: MEDIUM
+
+- Prefer `grid-template-areas` for a grid with three or more placed regions (page shells, cards with media, body and actions). Each item gets `grid-area: <name>` once; a container or media query then changes only the container's `grid-template-areas` and track sizes, never each item's placement.
+- Never re-place the same items by line number in several queries (`grid-column: 2 / 4` overridden per breakpoint). Every layout change then edits one rule per item, and the line numbers drift apart silently.
+- Name areas by content role (`media`, `body`, `actions`), never by position (`left`, `top`): the position is exactly what changes between layouts.
+- Rearranging areas moves boxes, not the DOM. Never use it to put content in a visual order that contradicts reading and focus order ([rules-a11y-performance.md](rules-a11y-performance.md) Semantic HTML Compatibility).
+
+```css
+@layer components {
+  .product-card {
+    container-type: inline-size;
+  }
+
+  .product-card-layout {
+    display: grid;
+    grid-template-areas:
+      "media"
+      "body"
+      "actions";
+    gap: var(--space-m);
+  }
+
+  .product-card-media {
+    grid-area: media;
+  }
+
+  .product-card-body {
+    grid-area: body;
+  }
+
+  .product-card-actions {
+    grid-area: actions;
+  }
+
+  @container (inline-size > 40rem) {
+    .product-card-layout {
+      grid-template-areas:
+        "media body"
+        "media actions";
+      grid-template-columns: minmax(12rem, 1fr) 2fr;
+    }
+  }
+}
+```
+
+### Flattening Wrappers: `display: contents`
+
+Priority: MEDIUM
+
+`display: contents` removes an element's box so its children take part in the parent's grid or flex layout.
+
+- Prefer subgrid when the children must align to the parent's tracks and the wrapper still has a visual job (background, border, padding). Use `display: contents` only when the wrapper's box does nothing.
+- Required: only on generic wrappers: `div`, `span`, or the `<p>` that Markdown wraps around a lone image. Never on interactive elements (`a`, `button`, `summary`), form labels and groups (`label`, `legend`, `fieldset`, `option`, `optgroup`, `output`), headings, lists (`ul`, `ol`, `li`, `dl`), table elements, landmarks (`nav`, `main`, `header`, `footer`, `aside`, `search`, `form`), `article`, `figure`, `details` or `dialog`. Engines have repeatedly dropped such elements' roles from the accessibility tree: Chrome and Firefox only fixed lists in 2021, and WebKit still hides `<details>` content from VoiceOver as of 2025. A `display: contents` button also has no box, so it has no focus ring and no hit area of its own.
+- Never on replaced elements and form controls (`img`, `video`, `audio`, `iframe`, `canvas`, `embed`, `object`, `svg`, `input`, `select`, `textarea`, `meter`, `progress`). For these the spec makes `display: contents` behave as `display: none`: the element and its alt text disappear.
+- A `section` with an accessible name (`aria-label`, `aria-labelledby`) is a region landmark, so the landmark rule applies to it too. The linter can't see the name and does not flag `section`; the reviewer does. The linter enforces the rest as `no-semantic-display-contents`, including through `:is()`/`:where()` and nested `&`.
+- The wrapper's own box styles stop applying: its padding, border, background and `gap` disappear. Inherited properties (`color`, `font`) still reach the children.
+- To ungroup only at some sizes, put `display: contents` inside the container query, so the grouped layout is the default.
+
+```css
+@layer components {
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+    gap: var(--space-m);
+  }
+
+  .feature-grid > .feature-group {
+    display: contents; /* the group div only exists for other layouts; its items join this grid */
+  }
+}
+```
+
+Avoid (the list stops being announced as a list in engines with the bug):
+
+```css
+.site-nav ul {
+  display: contents;
 }
 ```
 
