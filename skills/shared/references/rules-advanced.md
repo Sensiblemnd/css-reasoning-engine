@@ -111,15 +111,14 @@ Priority: MEDIUM
 - Required: put the transition on the base (closed) rule, not only the open-state rule. A transition declared only on `:popover-open`/`[open]` stops applying the moment the state is removed, so only the entry animates.
 - Placing the reduced-motion guard around the base rule, as above, means `no-preference` users get the fade and everyone else gets an instant toggle — the closed state is still `display: none` from the UA stylesheet, so `opacity: 0` never hides an open element.
 
-## Scroll-Driven Animations — Stability: Experimental
+## Scroll-Driven Animations — Stability: Emerging
 
-Priority: MEDIUM
+Priority: MEDIUM — direct on `modern`; `@supports`-gated progressive enhancement on `evergreen`; unavailable on `enterprise`/`legacy`.
 
-Not Baseline: Chrome shipped `animation-timeline` in 2023 and Safari in 2025, but **Firefox has not shipped it**. Never generate unless explicitly requested. This feature was tiered Stable in earlier versions of these rules; that was wrong, and CSS generated against it degrades silently — an `animation-timeline` Firefox does not understand leaves the element frozen in its `from` state, which for a reveal-on-scroll effect means permanently invisible content.
+Baseline newly available since 2026-10-27, when Firefox 159 became the last engine to ship it (Chrome 2023, Safari 2025). An engine without it degrades silently. It drops `animation-timeline`, so the effect never tracks scrolling. Any reveal whose base state is hidden (`opacity: 0` waiting for the animation) stays hidden for good. Firefox 158 and earlier are still inside the `evergreen` window.
 
-When explicitly requested:
-
-- Required: an `@supports (animation-timeline: view())` guard, with the unenhanced state fully usable — the element must render in its `to` state (visible, final position), never its `from` state.
+- Required on `evergreen`: an `@supports (animation-timeline: view())` guard.
+- Required on every profile: the unenhanced state must be fully usable. The element renders in its `to` state (visible, final position), never its `from` state. On `modern` the guard can be dropped, but the base rule must still hold the finished state.
 - Required: `prefers-reduced-motion` guard, same as any other animation — a scroll-driven animation is still an animation.
 - Required: `animation-range` to bound where the animation starts/ends within the scroller or the element's view, instead of approximating the range with JS-measured offsets.
 - Never make content visibility depend on the animation running. A reveal effect must degrade to "already revealed", not to "never revealed".
@@ -154,11 +153,12 @@ When explicitly requested:
 }
 ```
 
-Until the capability is confirmed, a scroll-linked effect is a candidate for *not building it* rather than for a JS scrollytelling library — the library is a large runtime cost for decoration. Where the effect is genuinely required, say so and accept the JS.
+- Prefer a scroll-driven animation over a JS scroll listener for decorative scroll-linked effects (progress bars, reveal-on-scroll, parallax) on `modern` and `evergreen`.
+- On `enterprise`/`legacy` (capability `false`), a scroll-linked effect is a candidate for *not building it* rather than for a JS scrollytelling library — the library is a large runtime cost for decoration. Where the effect is genuinely required, say so and accept the JS.
 
-### Named timelines: `timeline-scope`, `view-timeline-name` — Stability: Experimental
+### Named timelines: `timeline-scope`, `view-timeline-name` — Stability: Emerging
 
-Priority: LOW — same gating as the parent section; never generate unless explicitly requested.
+Priority: LOW — same gating as the parent section. MDN marks parts of `timeline-scope` as having varying support, so prefer animating a descendant of the element that names the timeline, which needs no `timeline-scope`, whenever the markup allows.
 
 A named `view-timeline` (`view-timeline-name` on the source element, referenced by `animation-timeline` on the animated element) is what connects an animated element to a scroller it does not itself live inside — e.g. a progress bar tracking an article. `timeline-scope` widens a name's visibility to ancestors that would otherwise be out of its scope.
 
@@ -378,7 +378,7 @@ Rules:
 ```
 
 - Prefer `anchor()` to read an offset or size from the anchor element directly in a property value (`top: anchor(bottom)`) only when `position-area` cannot already express the needed placement.
-- Prefer `position-visibility: anchors-visible` so the anchored element hides once its anchor scrolls out of view, instead of leaving a floating menu with no visible trigger.
+- Prefer `position-visibility: anchors-visible` so the anchored element hides once its anchor scrolls out of view, instead of leaving a floating menu with no visible trigger. The CSSWG renamed it to `anchor-visible`, and Chrome 157 (2026-11-03) ships the new name and deprecates the plural. Keep writing `anchors-visible` until the singular ships in Firefox and Safari, which so far have only the plural. A reviewer must not flag the plural as an error.
 - On `enterprise`/`legacy` (capability `false`): position overlays with popover default placement or a positioned container, not a JavaScript positioning library.
 
 ## Custom CSS Functions (@function) — Stability: Experimental

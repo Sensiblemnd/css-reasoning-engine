@@ -1,6 +1,7 @@
 # Browser Profiles, Capabilities, and @supports Rules
 
-> Baseline data verified: 2026-09-09, against webstatus.dev and the MDN Baseline banner. Re-verify
+> Baseline data verified: 2026-11-07, against webstatus.dev (every Emerging and Experimental row and every
+> dated Stable row) and the MDN Baseline banner (rows whose tier or date changed). Re-verify
 > before promoting or demoting any feature; recompute tiers from the Baseline since column in
 > Feature Stability rather than hand-editing a tier.
 >
@@ -23,15 +24,29 @@
 > `::highlight()` (MDN "newly available since March 2026"; the day is not verified, and the banner conflicts with
 > Firefox 140's 2025 support, so re-check it). `mask` and `linear()` reached widely available in 2026-06.
 > Firefox 156 now reports `selector(::-webkit-scrollbar)` as unsupported on every site (see rules-interaction.md).
-> Next crossings to Stable: `scrollbar-color` 2026-12, `:active-view-transition` 2027-01-13, `shape()` 2027-02-24,
-> `::highlight()` 2027-03, `@scope` 2027-03-24.
-> Next crossings to widely available: `light-dark()` and `text-wrap: balance` 2026-11-13, which flips `light_dark`
-> to `true` on `enterprise`; `round()`/`mod()`/`rem()` 2026-11, which flips `stepped_value_functions`.
 >
 > 2026-10-26, later: added `lh`/`rlh` (widely available; Firefox 120, 2023-11-21, was last), `round()` (MDN
 > "Baseline 2024, newly available since May 2024"), `display: contents` (rendering in every engine; the
 > accessibility bugs are not part of Baseline, see rules-layout.md), and `flex-wrap: balance`/`flex-line-count`
 > (Chromium 150+ only, Experimental).
+>
+> 2026-11-07, full re-check: scroll-driven animations promoted from Experimental to **Emerging**. Firefox 159
+> (2026-10-27) enabled them by default, and MDN now shows "Baseline 2026, newly available since October 2026"
+> for `animation-timeline`, `animation-range` and `timeline-scope` (the last marked "some parts vary"). Exact
+> days filled in from webstatus.dev: `::highlight()` 2026-03-24 (Firefox 149 was last, so the earlier
+> Firefox 140 date was wrong); `scrollbar-color` 2025-12-12 (Safari 26.2); `sibling-index()`/`sibling-count()`
+> 2026-08-18 (Firefox 154); `scrollbar-width` 2024-12-11; `round()`/`mod()`/`rem()` 2024-05-17 (Edge 125 was
+> last, three days after Chrome 125). `light-dark()` with images is confirmed at 2026-09-14 (Safari 27).
+> `text-wrap: pretty` was checked and is not Baseline because Firefox lacks it, so it moved to Experimental with a
+> safe-degrading exception. `@supports at-rule()` now ships in Firefox 157 too, but is still not Baseline. Chrome 157 renamed
+> `position-visibility: anchors-visible` to `anchor-visible`. webstatus.dev lists `border-shape` at Chrome 147,
+> while the 2026-10-20 note said 155+; the two are not reconciled, but either way it is Chromium only. Browsers now
+> ship stable releases every two weeks (Chrome 155/156/157 on 10-06/10-20/11-03, Firefox 156–159 from 09-15 to
+> 10-27), so re-check releases more often. No date-driven flip was due on this date.
+> Next crossings to Stable: `scrollbar-color` 2026-12-12, `:active-view-transition` 2027-01-13, `shape()` 2027-02-24,
+> `::highlight()` and `@scope` 2027-03-24, scroll-driven animations 2027-10-27.
+> Next crossings to widely available: `light-dark()` and `text-wrap: balance` 2026-11-13, which flips `light_dark`
+> to `true` on `enterprise`; `round()`/`mod()`/`rem()` 2026-11-17, which flips `stepped_value_functions`.
 
 ## Profile Resolution
 
@@ -131,7 +146,7 @@ capabilities:                    # modern  evergreen  enterprise  legacy
   property_registration:         #  true     true       false      false
   linear_easing:                 #  true     true       true       false
   starting_style:                #  true     true       false      false
-  scroll_driven_animations:      #  experimental — never without explicit request
+  scroll_driven_animations:      #  true     optional    false      false   (unenhanced state must be the finished state)
   view_transitions:              #  true     true       false      false
   active_view_transition:        #  true     optional    false      false
   view_transitions_cross_doc:    #  experimental — never without explicit request
@@ -181,7 +196,6 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `@starting-style` | 2024-08-06 (newly available; widely 2027-02) |
 | Relative color syntax (`oklch(from …)`) | 2024-09-16 (newly available; widely 2027-03) |
 | `scrollbar-gutter` | 2024-12-11 (newly available; widely 2027-06) |
-| `text-wrap: pretty` | not re-verified — treat as safe-degrading (an unsupported value is ignored and text wraps normally), never as a dependency |
 | Scroll snap (`scroll-snap-type`/`-align`, `scroll-padding`/`scroll-margin`) | widely available since 2020–2022 |
 | `<dialog>`, `::backdrop` | widely available since 2022–2024 |
 | `popover`, `:popover-open` | 2025-01-27 (newly available, > 12mo — Stable) |
@@ -192,31 +206,32 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 | `linear()` easing | widely available (2026-06; newly available 2023-12) |
 | `overflow: clip` | widely available (Safari 16, 2022-09) |
 | `lh` / `rlh` units | widely available (2026-05; newly available 2023-11-21, Firefox 120) |
-| `round()`, `mod()`, `rem()` | 2024-05 (newly available, > 12mo — Stable; widely 2026-11) |
+| `round()`, `mod()`, `rem()` | 2024-05-17 (Edge 125; newly available, > 12mo — Stable; widely 2026-11-17) |
 | `display: contents` | rendering supported in every engine for years; Baseline does not cover its accessibility-tree bugs, so it is restricted to generic wrappers (rules-layout.md) |
 | `grid-template-areas` / `grid-area` | widely available (part of Grid) |
-| `scrollbar-width` | 2024-12 (newly available; widely 2027-06) |
+| `scrollbar-width` | 2024-12-11 (newly available; widely 2027-06) |
 | `::details-content` | 2025-09-16 (Firefox 143; newly available, > 12mo — Stable as of 2026-09-16) |
 | `overflow-inline` / `overflow-block` | 2025-09 (Safari 26; newly available, > 12mo — Stable) |
 | View Transitions, same-document (`view-transition-name`, `view-transition-class`, `::view-transition-*`) | 2025-10-14 (Firefox 144; newly available, > 12mo — Stable as of 2026-10-14) |
 
 ### Emerging
 
-| Feature | Baseline since (last engine) | Age as of 2026-10-26 |
+| Feature | Baseline since (last engine) | Age as of 2026-11-07 |
 | ------- | --------------- | --------------------- |
-| Anchor Positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026-09-14 (Safari 27, the last engine to ship `position-anchor`) — see the split note below | ~1.4 months |
-| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~7.1 months |
-| `:active-view-transition` | 2026-01-13 | ~9.4 months |
-| `@container style()` | 2026-05-19 (Firefox 151) | ~5.2 months |
-| `field-sizing` | 2026-06-16 (Firefox 152) | ~4.3 months |
-| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~2.3 months |
-| `contrast-color()` | 2026-04-10 | ~6.5 months |
-| `shape()` | 2026-02-24 | ~8 months |
-| `sibling-index()` / `sibling-count()` | 2026-08 (re-checked 2026-10-12: MDN "Baseline 2026, newly available since August 2026") | ~2.3 months |
-| `:open` | 2026-05-11 | ~5.5 months |
-| `scrollbar-color` | 2025-12 (MDN "Baseline 2025") | ~10.8 months |
-| `light-dark()` with `<image>` arguments | 2026-09-14 (Safari 27) | ~1.4 months |
-| `::highlight()` (CSS Custom Highlight API) | 2026-03 (MDN "Baseline 2026, newly available since March 2026"; day not verified) | ~7 months |
+| Anchor Positioning (`anchor-name`, `position-anchor`, `position-area`, `position-try-fallbacks`, `@position-try`, `anchor()`) | 2026-09-14 (Safari 27, the last engine to ship `position-anchor`) — see the split note below | ~1.8 months |
+| `@scope`, `:scope` inside `@scope`, `&` inside `@scope` | 2026-03-24 (Safari 26.4) | ~7.5 months |
+| `:active-view-transition` | 2026-01-13 | ~9.8 months |
+| `@container style()` | 2026-05-19 (Firefox 151) | ~5.7 months |
+| `field-sizing` | 2026-06-16 (Firefox 152) | ~4.7 months |
+| `text-box-trim` / `text-box-edge` | 2026-08-18 (Firefox 154 — longhands only; the `text-box` shorthand is **not** Baseline) | ~2.7 months |
+| `contrast-color()` | 2026-04-10 | ~6.9 months |
+| `shape()` | 2026-02-24 | ~8.4 months |
+| `sibling-index()` / `sibling-count()` | 2026-08-18 (Firefox 154) | ~2.7 months |
+| `:open` | 2026-05-11 | ~5.9 months |
+| `scrollbar-color` | 2025-12-12 (Safari 26.2) | ~10.8 months |
+| `light-dark()` with `<image>` arguments | 2026-09-14 (Safari 27) | ~1.8 months |
+| `::highlight()` (CSS Custom Highlight API) | 2026-03-24 (Firefox 149) | ~7.5 months |
+| Scroll-driven animations (`animation-timeline: scroll()`/`view()`, `animation-range`, `view-timeline-name`, `timeline-scope`) | 2026-10-27 (Firefox 159; Chrome 115 and Safari 26 shipped earlier). MDN marks parts of `timeline-scope` as varying | ~0.4 months |
 
 **Anchor Positioning shipped in pieces and must be feature-detected on the last one.** `anchor-name`, `position-area` and `position-try-fallbacks` reached Baseline early in 2026; `position-anchor` only became Baseline newly available in September 2026 (Safari 27, 2026-09-14; MDN banner re-checked 2026-10-20). Grouped Baseline data (webstatus.dev `anchor-positioning`) still reports the whole feature as Limited availability (caniuse marks Chrome, Edge and Firefox as partial), so treat it as Emerging. Key the `@supports` guard to `position-anchor`, never to `anchor-name`: Safari 26 and other engines from before September 2026 have `anchor-name` but cannot position the element, so a guard on it detects nothing. The 12-month Stable crossing is 2026-09-14 + 12 months = 2027-09-14, assuming the grouped status catches up.
 
@@ -224,19 +239,19 @@ The `enterprise` column is arithmetic too: a capability is `true` on `enterprise
 
 | Feature | Why |
 | ------- | --- |
-| Scroll-driven animations (`animation-timeline: scroll()`/`view()`, `animation-range`, `view-timeline-name`, `timeline-scope`) | Not Baseline — Chrome 115 (2023-07), Safari 26 (2025-09), **Firefox has not shipped it** (re-checked 2026-10-20 on web-features: "blocked since September 2025 by Firefox"; ignore secondary sources claiming it is everywhere). Previously mis-tiered as Stable in this file; corrected 2026-09-09. |
 | View Transitions, cross-document (`@view-transition`, `navigation: auto`) | Not Baseline — Firefox has not shipped it |
-| `@container scroll-state()` (`stuck`, `snapped`, `scrollable`) | Not Baseline — Firefox has not shipped it |
+| `@container scroll-state()` (`stuck`, `snapped`, `scrollable`) | Not Baseline — Chromium only (144+); Firefox and Safari have not shipped it |
 | `overscroll-behavior` | Not Baseline — Safari has not shipped it |
 | `prefers-reduced-transparency` | Not Baseline — Firefox has not shipped it. **Exception: generate on every profile anyway.** An unsupported engine never matches the query, leaving the base styling untouched, so there is no broken state to guard against and no fallback to write. See rules-a11y-performance.md, Transparency. |
 | `corner-shape` (and `superellipse()`) | Not Baseline — Chromium only (139+); Firefox and Safari have not shipped it. **Safe-degrading:** an unsupported engine draws the plain `border-radius`, so when explicitly requested it needs no `@supports` guard. See rules-advanced.md, Shapes and Clipping. |
-| `border-shape` | Not Baseline — Chromium only (Chrome/Edge 155+ as of 2026-10); Firefox and Safari have not shipped it |
+| `border-shape` | Not Baseline — Chromium only; Firefox and Safari have not shipped it |
+| `text-wrap: pretty` | Not Baseline — Chromium 117 and Safari 26; Firefox has not shipped it. **Exception: generate on every profile anyway** (rules-color-typography.md, Text Wrapping). An engine that doesn't support the value ignores it and wraps text normally, so there is nothing to guard against. Never depend on it for layout. |
 | `flex-wrap: balance`, `flex-line-count` | Not Baseline — Chromium only (Chrome/Edge 150+); caniuse lists Firefox and Safari as unsupported as of 2026-10. **Safe-degrading:** declared after `flex-wrap: wrap`, other engines keep normal wrapping, so when explicitly requested it needs no `@supports` guard. See rules-layout.md, Grid vs Flexbox vs Flow. |
 | Anchored container queries (`@container anchored(fallback: …)`), scroll-triggered animations (`animation-trigger`), CSS `inherit()` | Not Baseline — the first two are Chromium only; `inherit()` is unshipped. All three are Interop 2027 proposals as of 2026-10; re-check when the Interop 2027 list is final. |
-| `if()`, `@function`, `@mixin`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs |
+| `if()`, `@function`, `@mixin`, customizable select (`appearance: base-select`), `reading-flow`/`reading-order`, masonry/`grid-lanes`, gap decorations, `interpolate-size`/`calc-size()` | Single-engine or unshipped specs. The exception is customizable select, which ships in Chromium 135 and Safari 27 but not in Firefox. Firefox 159 removed the legacy `grid-template-*: masonry` syntax |
 | `random()`, `text-fit`, `background-clip: border-area`, typed `attr()` (`attr(data-x type(<number>))`, or `attr()` in any property other than `content`) | Not Baseline. These drive much of the current demo content (css-tip, css-articles), which is exactly where they get copied from. Never generate unless requested. |
 | Unprefixed `line-clamp` | Not Baseline (MDN: limited availability). Alone it does nothing in most engines; use the `-webkit-line-clamp` triplet, which every engine supports and the spec keeps as a legacy alias. |
-| `@supports at-rule()` | Not Baseline — Chromium 148 only as of 2026-03; Firefox/Safari in progress. Never use it as a guard: engines without it evaluate the condition false and drop the block even when they support the at-rule being tested. |
+| `@supports at-rule()` | Not Baseline — Chromium 148 and Firefox 157 (2026-09-29); Safari has not shipped it. Never use it as a guard: engines without it evaluate the condition false and drop the block even when they support the at-rule being tested. |
 
 ## @supports Rules
 

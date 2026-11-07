@@ -147,7 +147,7 @@ Rules:
 
 - Required: `rem`-based bounds in `clamp()` so zoom and user font-size settings scale the result.
 - Never a `px`-only fluid expression — it breaks user font scaling.
-- Prefer `round()` when fluid values must land on the type or spacing grid, so a `clamp()` resolves to 20px or 24px instead of 19.7px. `round()` is Stable (Baseline 2024-05, widely available 2026-11): direct on `modern`/`evergreen`; on `enterprise`/`legacy` emit the plain `clamp()`, which is the same size before snapping. Round `down` so the result never exceeds the clamp's maximum, and take the interval from a token. An interval of `0` makes the whole value invalid.
+- Prefer `round()` when fluid values must land on the type or spacing grid, so a `clamp()` resolves to 20px or 24px instead of 19.7px. `round()` is Stable (Baseline 2024-05-17, widely available 2026-11-17): direct on `modern`/`evergreen`; on `enterprise`/`legacy` emit the plain `clamp()`, which is the same size before snapping. Round `down` so the result never exceeds the clamp's maximum, and take the interval from a token. An interval of `0` makes the whole value invalid.
 - A token holding container query units (`cqi`) is fine in `:root`: an unregistered custom property is substituted where it is used, so `cqi` resolves against the using element's container. Never register such a token with `@property` as a `<length>`. A registered length is computed on `:root`, where no container exists, so every component would get the same value.
 
 ```css
@@ -163,7 +163,7 @@ Rules:
 
 Priority: MEDIUM
 
-- Required in `base`: `text-wrap: balance` on headings; `text-wrap: pretty` on body copy.
+- Required in `base`: `text-wrap: balance` on headings; `text-wrap: pretty` on body copy. Both apply on every profile with no `@supports`. `pretty` is not Baseline (Firefox lacks it), but an engine without a value ignores it and wraps normally, so neither one can break layout.
 - Required on user-generated or unknown content: `overflow-wrap: break-word`.
 - Prefer `hyphens: auto` for narrow columns of justified or long-word text; requires a correct `lang` attribute.
 

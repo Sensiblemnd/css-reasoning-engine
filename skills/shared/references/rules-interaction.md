@@ -169,7 +169,7 @@ Priority: LOW — direct on `modern`/`evergreen` without `@supports`; unavailabl
 
 ## `@container scroll-state()` — Stability: Experimental
 
-Priority: LOW — not yet Baseline: Firefox has not shipped it. Documented so the reviewer recognizes it and the refactorer knows the migration target; never generate unless explicitly requested.
+Priority: LOW — not yet Baseline: Chromium only; Firefox and Safari have not shipped it. Documented so the reviewer recognizes it and the refactorer knows the migration target; never generate unless explicitly requested.
 
 `scroll-state(stuck: ...)` / `scroll-state(snapped: ...)` / `scroll-state(scrollable: ...)`, queried on a `container-type: scroll-state` ancestor, answer "is this element currently stuck / snapped / scrollable" without a JS `IntersectionObserver` polling for the same state and writing a class back onto the DOM.
 
