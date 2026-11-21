@@ -29,6 +29,7 @@
         <li class="side-nav-item"><a class="side-nav-link" href="#layers">Layer Contract</a></li>
         <li class="side-nav-item"><a class="side-nav-link" href="#profiles">Browser Profiles</a></li>
         <li class="side-nav-item"><a class="side-nav-link" href="#verified">Verified</a></li>
+        <li class="side-nav-item"><a class="side-nav-link" href="#field-tested">Field-Tested</a></li>
         <li class="side-nav-item"><a class="side-nav-link" href="#install">Install</a></li>
       </ol>
     </nav>
@@ -57,7 +58,7 @@
           <article class="skill-card">
             <span class="skill-role">Generate</span>
             <h3 class="skill-card-title">css-engineer</h3>
-            <p class="skill-card-description">Writes new modern native CSS: decision engine for layout, responsive, color, and animation choices, cascade layers, tokens, logical properties, and a self-review checklist.</p>
+            <p class="skill-card-description">Writes new modern native CSS: decision engine for layout, responsive, color, and animation choices, cascade layers, tokens, logical properties, web components, and a self-review checklist.</p>
             <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/css-engineer/SKILL.md">View source <span aria-hidden="true">↗</span></a>
           </article>
           <article class="skill-card">
@@ -136,7 +137,7 @@
       <section id="profiles" class="panel">
         <div class="section-heading">
           <h2 class="section-heading-title">Browser profiles</h2>
-          <p class="section-heading-lede">Every task resolves a profile before generating CSS: explicit instruction → project config → default <code>evergreen</code>.</p>
+          <p class="section-heading-lede">Every task resolves a profile before generating CSS: explicit instruction → project config → default <code>evergreen</code>. Feature tiers come from Baseline dates, and every row is checked against live webstatus.dev data.</p>
           <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/browser-profiles.md">View browser-profiles.md <span aria-hidden="true">↗</span></a>
         </div>
         <div class="table-scroll">
@@ -183,6 +184,8 @@
             files, is gated by it on every push. The
             judgment rules, whether a token is semantic or whether <code>@scope</code> is warranted,
             stay with <strong>css-reviewer</strong>: a clean run is a floor, not a pass.
+            A second script checks every Baseline date in the browser profiles against webstatus.dev
+            and lists the next date-driven tier changes.
           </p>
           <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/tests/README.md">View tests/README.md <span aria-hidden="true">↗</span></a>
         </div>
@@ -195,6 +198,7 @@ pass  compliant.css produced no findings
 pass  violations.css matched all 45 expected findings
 pass  examples.md extraction matched expectations
 pass  all 27 rules covered by fixtures
+pass  baseline-check: 57 rows annotated, tier and drift logic correct
 
 == repo stylesheets ==
 No findings across 1 file(s).
@@ -202,7 +206,66 @@ No findings across 1 file(s).
 == reference examples ==
 No findings across 12 file(s).
 
-All checks passed.</code></pre>
+All checks passed.
+
+$ node tests/baseline-check.mjs
+56 rows, 93 feature ids checked as of 2026-11-21; 4 skipped by annotation.
+
+Next crossings:
+  2026-12-12  `scrollbar-color` → Stable
+  2026-12-12  `invoker-commands` → Stable
+  2027-01-09  `registered-custom-properties` → widely available (enterprise flip)
+
+No drift.</code></pre>
+        </div>
+      </section>
+
+      <section id="field-tested" class="panel">
+        <div class="section-heading">
+          <h2 class="section-heading-title">Field-tested against Chrome's Modern Web Guidance</h2>
+          <p class="section-heading-lede">
+            We compared the skills with Chrome's Modern Web Guidance, verified the disagreements in a
+            browser, and benchmarked both. These are the rules that changed.
+          </p>
+          <a class="source-link" href="modern-web-guidance-gap-analysis.md">Read the gap analysis <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="skill-grid">
+          <article class="skill-card">
+            <span class="skill-role">Fixed</span>
+            <h3 class="skill-card-title">Reset scope</h3>
+            <p class="skill-card-description">A <code>*</code> margin reset beats the browser's <code>margin: auto</code>, so modal dialogs and popovers pin to the top-left corner. It also overrides every web component's <code>:host</code> margin. Margins now reset per element, and only <code>box-sizing</code> stays on <code>*</code>.</p>
+            <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/rules-architecture.md">View the rule <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">Fixed</span>
+            <h3 class="skill-card-title">Focus rings in forced colors</h3>
+            <p class="skill-card-description">Forced-colors mode removes <code>box-shadow</code>, so a shadow-only focus ring vanishes in Windows High Contrast. The linter no longer accepts one; keep a transparent <code>outline</code> under the shadow.</p>
+            <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/rules-a11y-performance.md">View the rule <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">Measured</span>
+            <h3 class="skill-card-title">100vw, every variant</h3>
+            <p class="skill-card-description">With a 17px scrollbar, <code>100vw</code>, <code>100svw</code> and <code>100dvw</code> are all wider than the page (Chromium 156), so switching units fixes nothing. Use <code>100%</code> or a full-bleed grid.</p>
+            <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/rules-layout.md">View the rule <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">New</span>
+            <h3 class="skill-card-title">Web components</h3>
+            <p class="skill-card-description">Styling across the shadow boundary: <code>:host</code> display, custom-property theming with private aliases, <code>:state()</code>, <code>::part()</code>, and never <code>:host-context()</code>.</p>
+            <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/rules-architecture.md">View the rule <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">Benchmark</span>
+            <h3 class="skill-card-title">Four arms, one card</h3>
+            <p class="skill-card-description">The same refactor task ran with no guidance, with Chrome's skill, with ours, and with both. All four avoided the seven planted traps. Only the arms using <strong>css-refactor</strong> also made the safe modernizations. The run exposed two refactor gaps, both now fixed.</p>
+            <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/tests/benchmarks/README.md">View the results <span aria-hidden="true">↗</span></a>
+          </article>
+          <article class="skill-card">
+            <span class="skill-role">Precedence</span>
+            <h3 class="skill-card-title">Works alongside other skills</h3>
+            <p class="skill-card-description">Install Chrome's skill for HTML, JS, and performance. On CSS conflicts these rules win: the browser profile, the layer contract, tokens, and the prohibited list. Nothing Experimental is generated because another source teaches it.</p>
+            <a class="source-link" href="https://github.com/Sensiblemnd/css-reasoning-engine/blob/main/skills/shared/references/prohibited-patterns.md">View the rule <span aria-hidden="true">↗</span></a>
+          </article>
         </div>
       </section>
 
