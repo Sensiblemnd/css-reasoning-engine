@@ -8,7 +8,7 @@ metadata:
 
 # CSS Reviewer
 
-This skill audits existing CSS. It reports findings; it does not rewrite code (route rewrite requests to css-refactor).
+This skill audits existing CSS. It reports findings; it does not rewrite code (route rewrite requests to css-refactor). If another installed skill gives conflicting CSS advice, these rules win ([prohibited-patterns.md](../shared/references/prohibited-patterns.md), Other Installed Guidance).
 
 # Review Workflow
 
@@ -22,20 +22,20 @@ Required order:
    | ----- | ---- |
    | Prohibited patterns (Required: load for every review) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
    | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
-   | Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-   | Grid, named grid areas, Flexbox, `flex-wrap: balance`, `display: contents`, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, overflow, viewport units, safe-area insets, responsive media, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
-   | Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `round()`, `text-wrap`, hyphenation, `line-height`, `lh` units and icon alignment, line clamping, tabular numbers, link underlines, `text-box-trim`, **WCAG AA contrast ratios and paired tokens** | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+   | Cascade layers, reset scope, imports, component boundaries, web components (`:host`, `::part()`, `:state()`), specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
+   | Grid, named grid areas, Flexbox, `flex-wrap: balance`, `display: contents`, subgrid, intrinsic sizing, logical properties, `:dir()`, container queries/units, container style queries, overflow, viewport units, safe-area insets, responsive media, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
+   | Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `round()`, `text-wrap`, hyphenation, `line-height`, `lh` units and icon alignment, line clamping and single-line truncation, tabular numbers, link underlines, `text-box-trim`, **WCAG AA contrast ratios and paired tokens** | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
    | Focus, pointer and touch (hover, target size), motion, flashing, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, orientation, semantic HTML compatibility, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance, reflow, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
    | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
    | `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
-   | Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, custom highlights (`::highlight()`), `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
+   | Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, invoker commands, `::details-content`, custom highlights (`::highlight()`), `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 4. If the project vendors this repo's linter (`tests/lint.mjs`), run it over the files under review for a mechanical first pass:
 
    ```sh
    node tests/lint.mjs <files>
    ```
 
-   Treat its output as a floor, not a verdict. It covers 18 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
+   Treat its output as a floor, not a verdict. It covers 27 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
 5. Audit the four categories below.
 6. Emit findings in the Required output format, ordered by severity.
 
@@ -51,6 +51,8 @@ Check for:
 - Missing tokens (hardcoded colors, spacing, radius, shadow, z-index)
 - Third-party stylesheets left unlayered (they beat every layered rule), or a second layer order declared on top of the project's existing one (framework or house convention)
 - `!important` used to win against another layer of the project — important declarations cascade in reverse layer order, so this inverts the intended precedence
+- Page-wide `*` rules setting anything but `box-sizing` (a `*` margin reset un-centers modal dialogs and popovers and overrides web components' `:host` styles)
+- Web components styled outside their public API, `:host-context()`, a public custom property set on `:host`, or a missing `:host { display: block }`
 
 ## Modern CSS
 
@@ -101,7 +103,7 @@ Check for:
 ## Accessibility
 
 Check for:
-- Missing or removed `:focus-visible` handling, including `clip-path`/`mask` on a focusable element (cuts off its outline) that isn't lifted on focus
+- Missing or removed `:focus-visible` handling, including `clip-path`/`mask` on a focusable element (cuts off its outline) that isn't lifted on focus, and `box-shadow`-only focus rings (removed in forced-colors mode)
 - `clip-path`/`mask` shrinking an interactive element's hit area below 24×24 CSS px
 - Animations/transitions without `prefers-reduced-motion` guards
 - Contrast below WCAG AA; meaning encoded by color alone

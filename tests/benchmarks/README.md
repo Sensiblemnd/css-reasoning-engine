@@ -49,6 +49,9 @@ list with risk `none`:
 
 - Physical → logical properties (`width` → `inline-size`, `margin-right` →
   `margin-inline-end`, `top`/`left` → `inset-block-start`/`inset-inline-start`).
+  Risk `none` only for an LTR-only project. If the card can appear on an RTL
+  page, the badge and the tag gap mirror, which is a rendering change, so grade
+  a change list that says so as correct.
 - `transition: all 0.2s ease` → the properties that actually change
   (`background-color`, `opacity`).
 - Literal colours → tokens, **one token per distinct value** (see trap 3).
@@ -86,3 +89,56 @@ where doing what the linter says breaks traps 1 and 4.
 That is the shape of the "floor, not a pass" claim, and it cuts both ways: an
 agent that treats a linter finding as a to-do item fails this benchmark, and an
 agent that treats a *clean* run as approval never looks at traps 5 or 6 at all.
+
+### Results: 2026-11-21, four guidance arms
+
+Each arm was one Claude Opus 5.5 agent given the same task, with the trap
+comments stripped from the input. The task was to refactor the card into modern
+native CSS without changing how it renders "in any state or page context". The
+arms were:
+
+- **none:** no guidance
+- **mwg:** Chrome's Modern Web Guidance only (commit `64a6d70`), read locally
+- **ours:** `css-refactor` plus the shared references
+- **both:** both skill sets
+
+There was one run per arm, so treat differences as anecdotes, not rates.
+
+| | none | mwg | ours | both |
+| - | ---- | --- | ---- | ---- |
+| 1 Renders the tight hover shadow | pass | pass | pass | pass |
+| 2 `z-index` `!important` pair | kept | kept | removed, `low` (proven only within the file) | kept |
+| 3 Two greens, two tokens | pass | pass | pass | pass |
+| 4 Promo `!important` tie | kept | kept | removed, `low` (correct source-order reasoning) | kept |
+| 5 `.card p` / `.card-description` overlap | left as is | left as is | left as is | left as is |
+| 6 Protective `.card` scope | pass | pass | pass | pass |
+| 7 `-webkit-line-clamp` triplet | pass | pass, plus unprefixed `line-clamp` | pass | pass |
+| `opacity: 0.95` and `.card p` kept | yes | yes | yes | yes |
+| Physical → logical | declined (RTL) | declined (RTL) | all converted, RTL mirroring noted | block axis only; `left`/`margin-right` kept for RTL |
+| `transition: all` narrowed | no | no | yes | yes |
+| Tokens | prefixed `--product-card-*` | prefixed, on `:root, :host` | generic names in `@layer tokens` | generic names in `@layer tokens` |
+| Component rules layered | no, reasoned | no, reasoned | no, reasoned | no, reasoned |
+| Checked in a browser | no | yes, 8 page contexts and shadow DOM | yes, 3 states | no |
+
+Findings:
+
+- **No arm hit the original LogRocket failures.** All four, including the
+  unguided control, kept the rendered shadow (trap 1) and the protective scope
+  (trap 6). On current models the seven traps no longer tell guided and
+  unguided agents apart; the differences show up in the legitimate-change half
+  and in how far each arm reasoned about the surrounding page.
+- **The skills produce more of the legitimate modernization.** Only the arms
+  with `css-refactor` narrowed `transition: all` and converted to logical
+  properties. The control and mwg arms declined almost every legitimate change
+  as "could change rendering".
+- **Two gaps in `css-refactor`, both fixed after this run:**
+  - The "ours" arm removed all three `!important`s as `low` after proving the
+    in-file winner unchanged. The rules stayed unlayered, though, so the
+    removal changes how they compete with page CSS. That is now `follow-up`
+    (Specificity reduction).
+  - Both skill arms defined generically named tokens in a layer, which any
+    unlayered page rule of the same name overrides. Standalone components now
+    get component-prefixed tokens (Literals → Semantic tokens).
+- **Precedence held.** The "both" arm followed the "Other Installed Guidance"
+  rule. It declined MWG's unprefixed `line-clamp` and `corner-shape`
+  suggestions and kept our two token tiers.

@@ -32,6 +32,7 @@ skills/
 └── css-refactor/SKILL.md
 tests/                             # zero-dependency linter for the rules
 ├── lint.mjs                       # rule engine + CLI
+├── baseline-check.mjs             # Baseline tables vs live webstatus.dev data
 ├── run.sh                         # self-test, then gate repo stylesheets and skill examples
 ├── README.md
 ├── fixtures/                      # compliant.css + annotated violations.css
@@ -50,6 +51,7 @@ The mechanically checkable subset of the rules is enforced by a zero-dependency 
 ./tests/run.sh                    # self-test the linter, then gate docs/styles.css and skill examples
 node tests/lint.mjs path/to.css   # lint any stylesheet
 node tests/lint.mjs --list-rules  # every rule and what it enforces
+node tests/baseline-check.mjs     # Baseline tables vs live webstatus.dev data (needs network)
 ```
 
 Requires Node; there is no `package.json` and no install step. It also runs in CI on every push and pull request ([.github/workflows/lint.yml](.github/workflows/lint.yml)).

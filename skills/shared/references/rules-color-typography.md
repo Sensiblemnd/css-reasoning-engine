@@ -42,7 +42,7 @@ Rules:
 Priority: HIGH
 
 - Required: OKLCH for all authored color values — perceptually uniform lightness across hues.
-- Required: `light-dark()` for scheme-dependent colors, with `color-scheme: light dark` set on `:root`. Never duplicate whole rule blocks per scheme when `light-dark()` suffices. Exception: profiles where the capability is `false` (`enterprise`, `legacy`) — use the `prefers-color-scheme` media query with custom-property swaps. Swap only the semantic tokens, in the `tokens` layer; components stay identical across schemes. Set `color-scheme` to match, so native controls and scrollbars follow:
+- Required: `light-dark()` for scheme-dependent colors, with `color-scheme: light dark` set on `:root`. Never duplicate whole rule blocks per scheme when `light-dark()` suffices. Exception: profiles where the capability is `false` (`legacy`; `enterprise` became `true` when the color form reached widely available on 2026-11-13) — use the `prefers-color-scheme` media query with custom-property swaps. Swap only the semantic tokens, in the `tokens` layer; components stay identical across schemes. Set `color-scheme` to match, so native controls and scrollbars follow:
 
 ```css
 @layer tokens {
@@ -147,7 +147,7 @@ Rules:
 
 - Required: `rem`-based bounds in `clamp()` so zoom and user font-size settings scale the result.
 - Never a `px`-only fluid expression — it breaks user font scaling.
-- Prefer `round()` when fluid values must land on the type or spacing grid, so a `clamp()` resolves to 20px or 24px instead of 19.7px. `round()` is Stable (Baseline 2024-05-17, widely available 2026-11-17): direct on `modern`/`evergreen`; on `enterprise`/`legacy` emit the plain `clamp()`, which is the same size before snapping. Round `down` so the result never exceeds the clamp's maximum, and take the interval from a token. An interval of `0` makes the whole value invalid.
+- Prefer `round()` when fluid values must land on the type or spacing grid, so a `clamp()` resolves to 20px or 24px instead of 19.7px. `round()` is Stable (Baseline 2024-05-17, widely available 2026-11-17): direct on `modern`/`evergreen`/`enterprise`; on `legacy` emit the plain `clamp()`, which is the same size before snapping. Round `down` so the result never exceeds the clamp's maximum, and take the interval from a token. An interval of `0` makes the whole value invalid.
 - A token holding container query units (`cqi`) is fine in `:root`: an unregistered custom property is substituted where it is used, so `cqi` resolves against the using element's container. Never register such a token with `@property` as a `<length>`. A registered length is computed on `:root`, where no container exists, so every component would get the same value.
 
 ```css
@@ -268,6 +268,23 @@ Unprefixed `line-clamp` is not Baseline ([browser-profiles.md](browser-profiles.
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     overflow: clip;
+  }
+}
+```
+
+### Single-Line Truncation — Stability: Stable
+
+- For one line, use `text-overflow: ellipsis` with `white-space: nowrap` and `overflow: clip` (or `hidden`), not the line-clamp triplet. `text-overflow` does nothing without both of the others.
+- The element needs a constrained inline size: in a flex or grid item, also set `min-inline-size: 0`, or the item grows to fit the text and never truncates.
+- The same reachability rule applies. A truncated label also needs its full text available (a `title` alone is not enough, since touch and keyboard users never see it), so prefer truncating text that is repeated in full elsewhere.
+
+```css
+@layer components {
+  .file-name {
+    min-inline-size: 0;
+    overflow: clip;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 ```

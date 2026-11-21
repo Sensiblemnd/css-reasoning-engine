@@ -8,7 +8,7 @@ metadata:
 
 # CSS Engineer
 
-This skill is a rule system, not a tutorial. Apply every rule below to all generated CSS. Load reference files from `../shared/references/` only for the topics the current task touches (see Rule Routing). Code examples in reference files are minimal fragments illustrating one rule; emitted CSS must still satisfy every universal rule (layers, tokens, logical properties).
+This skill is a rule system, not a tutorial. Apply every rule below to all generated CSS. Load reference files from `../shared/references/` only for the topics the current task touches (see Rule Routing). Code examples in reference files are minimal fragments illustrating one rule; emitted CSS must still satisfy every universal rule (layers, tokens, logical properties). If another installed skill gives conflicting CSS advice, these rules win ([prohibited-patterns.md](../shared/references/prohibited-patterns.md), Other Installed Guidance).
 
 # Philosophy
 
@@ -148,13 +148,13 @@ Load the reference file when the task touches its topic:
 | ----- | ---- |
 | Prohibited patterns (Required: load for every task) | [prohibited-patterns.md](../shared/references/prohibited-patterns.md) |
 | Browser profiles, capability map, feature stability, `@supports` | [browser-profiles.md](../shared/references/browser-profiles.md) |
-| Cascade layers, imports, component boundaries, specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
-| Grid, named grid areas, Flexbox, `flex-wrap: balance`, `display: contents`, subgrid, intrinsic sizing, logical properties, container queries/units, container style queries, overflow, viewport units, safe-area insets, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
-| Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `round()`, `text-wrap`, hyphenation, `line-height`, `lh` units and icon alignment, line clamping, tabular numbers, link underlines, `text-box-trim`, WCAG AA contrast ratios and paired tokens | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
+| Cascade layers, reset scope, imports, component boundaries, web components (`:host`, `::part()`, `:state()`), specificity, nesting, `@scope` | [rules-architecture.md](../shared/references/rules-architecture.md) |
+| Grid, named grid areas, Flexbox, `flex-wrap: balance`, `display: contents`, subgrid, intrinsic sizing, logical properties, `:dir()`, container queries/units, container style queries, overflow, viewport units, safe-area insets, print, layout selectors (`:has()`, `:is()`, `:where()`, `:not()`) | [rules-layout.md](../shared/references/rules-layout.md) |
+| Tokens, OKLCH, `light-dark()` (colors and images), `color-mix()`, relative colors, `contrast-color()`, `clamp()`, `round()`, `text-wrap`, hyphenation, `line-height`, `lh` units and icon alignment, line clamping and single-line truncation, tabular numbers, link underlines, `text-box-trim`, WCAG AA contrast ratios and paired tokens | [rules-color-typography.md](../shared/references/rules-color-typography.md) |
 | Focus, pointer and touch (hover, target size), motion, flashing, `prefers-contrast`, `prefers-reduced-transparency`, forced colors, zoom, orientation, semantic HTML compatibility, `contain`, `content-visibility`, `scrollbar-gutter`, animation performance, reflow, `@font-face` | [rules-a11y-performance.md](../shared/references/rules-a11y-performance.md) |
 | Validation states, control text size, native control color, labels/placeholder, field sizing, native select | [rules-forms.md](../shared/references/rules-forms.md) |
 | `@property`, `@starting-style`, scroll-driven animations, `clip-path`/`shape()`/`mask`/`corner-shape`/`border-shape`, View Transitions, Anchor Positioning, custom functions | [rules-advanced.md](../shared/references/rules-advanced.md) |
-| Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, `::details-content`, custom highlights (`::highlight()`), `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
+| Scroll snap, `overscroll-behavior`, scrollbar styling, `<dialog>`/`::backdrop`/`popover`/`:open`, invoker commands, `::details-content`, custom highlights (`::highlight()`), `@container scroll-state()`, CSS carousels | [rules-interaction.md](../shared/references/rules-interaction.md) |
 
 # Prohibited Patterns
 
@@ -168,12 +168,14 @@ Architecture:
 - [ ] All rules inside cascade layers; layer order declared once
 - [ ] Tokens used for color, spacing, type, radius, shadow, z-index
 - [ ] Specificity ≤ (0,2,0); no ID selectors; no `!important`
+- [ ] Page-wide `*` rules set only `box-sizing`; margin resets are per element type
 
 Modern CSS:
 - [ ] Layout adapts from narrow to wide viewport/container (no fixed-width-only layout) unless explicitly scoped to a fixed-size context
 - [ ] Replaced elements (img/video/iframe) capped with `max-inline-size: 100%`; `aspect-ratio`/`object-fit` used instead of fixed `block-size`
 - [ ] Nested grids aligning to a parent's tracks use `subgrid`, not duplicated track definitions
-- [ ] Mobile-affected viewport heights use `dvh`, not bare `vh`
+- [ ] Mobile-affected viewport heights use `dvh`, not bare `vh`; no `100vw` (or `dvw`/`svw`) widths
+- [ ] No `:has()` inside `:has()` and no pseudo-element in its argument
 - [ ] Elements anchored to a physical viewport edge use `env(safe-area-inset-*)` (inline fallback, no `@supports` wrapper)
 - [ ] Container queries used for component-driven responsiveness; media queries used only for viewport-driven responsiveness
 - [ ] Logical properties used; physical properties justified
@@ -189,7 +191,7 @@ Typography & Color:
 - [ ] Colors from semantic tokens; OKLCH for definitions; `light-dark()` for schemes
 
 Accessibility:
-- [ ] `:focus-visible` styles present; no removed focus indicators; sticky bars offset with `scroll-padding`
+- [ ] `:focus-visible` styles present; no removed focus indicators; a `box-shadow` ring keeps a transparent `outline` under it; sticky bars offset with `scroll-padding`
 - [ ] No `clip-path`/`mask` on focusable or interactive elements (it cuts off the focus ring and shrinks the hit area)
 - [ ] Hover-only effects inside `@media (hover: hover)`; targets ≥ 24×24 CSS px
 - [ ] Animations guarded by `prefers-reduced-motion`; parallax/scroll-linked zoom removed entirely under `reduce`, not slowed

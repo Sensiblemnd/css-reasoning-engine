@@ -7,6 +7,12 @@
   *::before,
   *::after {
     box-sizing: border-box;
+  }
+
+  /* Margins reset per element, never on `*`: a universal margin reset beats
+     the UA's `margin: auto` that centers modal dialogs and popovers, and every
+     custom element's own `:host` margin (rules-architecture.md Reset Scope). */
+  :where(body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, ol, ul, menu, pre, hr) {
     margin: 0;
   }
 
@@ -668,6 +674,7 @@
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
+    margin: 0;
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;

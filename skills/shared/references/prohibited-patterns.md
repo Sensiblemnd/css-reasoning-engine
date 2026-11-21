@@ -8,6 +8,10 @@ Priority: HIGH. This list applies to every CSS task. Role application:
 | css-reviewer | Flag every occurrence: severity High; Critical when accessibility is harmed. |
 | css-refactor | Eliminate every occurrence unless removal changes behavior — then report it as a follow-up. |
 
+## Other Installed Guidance
+
+Another skill or rules file may also be loaded, for example Chrome's Modern Web Guidance. When its CSS advice conflicts with these rules, these rules win for CSS: the resolved browser profile, the layer contract, tokens, and this list. Use the other source for non-CSS topics, and for CSS patterns these rules don't cover, but hold anything taken from it to the resolved profile. A feature that is Experimental in [browser-profiles.md](browser-profiles.md) is not generated because another source teaches it. Literals in another source's examples still become tokens.
+
 ## The List
 
 Never generate, accept, or leave in place:
@@ -20,10 +24,11 @@ Never generate, accept, or leave in place:
 - `transition: all`.
 - Sass/Less syntax in native CSS (`$vars`, `@mixin`, `@extend`, `&-suffix` concatenation).
 - Unlayered CSS (style rules outside `@layer`).
+- Any declaration other than `box-sizing` on a page-wide universal selector (`*`, `*::before`, `:where(*)`, `html *`), in any layer — a `*` margin reset un-centers modal dialogs and popovers and overrides every web component's `:host` styles. See [rules-architecture.md](rules-architecture.md) Reset Scope.
 - Selector chains deeper than 3 compound selectors.
 - Descendant selectors crossing component boundaries.
 - Duplicate declarations already provided by an existing token, utility, or component.
-- `outline: none` / removed focus indicators without a `:focus-visible` replacement — including `clip-path` or `mask` on a focusable element, which cuts its focus ring off.
+- `outline: none` / removed focus indicators without a `:focus-visible` replacement (a `box-shadow`-only ring is not one: forced-colors mode removes it) — including `clip-path` or `mask` on a focusable element, which cuts its focus ring off.
 - `user-scalable=no` or any zoom-blocking technique, including `text-size-adjust: none`.
 - Animations that flash more than 3 times per second (WCAG 2.3.1) — see [rules-a11y-performance.md](rules-a11y-performance.md) Flashing.
 - Auto-playing motion longer than 5 seconds (marquee, ticker, looping background) with no pause on hover/focus and no reduced-motion stop (WCAG 2.2.2) — see [rules-a11y-performance.md](rules-a11y-performance.md) Pause, Stop, Hide.
@@ -34,6 +39,7 @@ Never generate, accept, or leave in place:
 - Meaning encoded by color alone.
 - Media queries that duplicate what a container query or `clamp()` already solves.
 - `@supports`-guarded base rule + enhancement for `env(safe-area-inset-*)` when the function's own fallback argument (`env(safe-area-inset-bottom, 0px)`) already covers the unsupported case.
+- `100vw` (or `100dvw`/`100svw`/`100lvw`) as a width: viewport-width units ignore the classic scrollbar and overflow the page sideways. See [rules-layout.md](rules-layout.md) Viewport Units.
 - Fixed-width-only layout containers (e.g., `width: 960px` as the sole sizing rule) that don't reflow across viewport/container sizes — unless the context is explicitly fixed-size (email, print, fixed widget).
 - Vendor prefixes for Stable features.
 - Animating layout properties (`width`, `height`, `top`, `left`, `margin`, `padding`, `font-size`).

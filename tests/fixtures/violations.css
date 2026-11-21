@@ -96,6 +96,35 @@
     outline: none;
   }
 
+  /* Forced-colors mode drops box-shadow, so this ring vanishes there. */
+  /* expect: no-outline-none */
+  .chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-focus);
+  }
+
+  /* Every viewport-width unit ignores the classic scrollbar: all overflow. */
+  .banner {
+    /* expect: no-viewport-full-width */
+    inline-size: 100dvw;
+  }
+
+  .hero {
+    /* expect: no-viewport-full-width */
+    min-inline-size: calc(100vw - var(--space-m));
+  }
+
+  /* :has() cannot nest, and cannot hold a pseudo-element: rule dropped. */
+  /* expect: no-invalid-has */
+  .card:has(.media:has(img)) {
+    gap: var(--space-s);
+  }
+
+  /* expect: no-invalid-has */
+  .field:has(input::placeholder) {
+    gap: var(--space-s);
+  }
+
   /* An unregistered custom property interpolates discretely, so the
    * transition silently does nothing. */
   /* expect: unregistered-animated-property */
@@ -205,6 +234,23 @@
   :root {
     /* expect: no-text-size-adjust-none */
     -webkit-text-size-adjust: none;
+  }
+
+  /* A universal margin reset beats the UA `margin: auto` that centers modal
+     dialogs and popovers, and every custom element's `:host` margin.
+     box-sizing alongside it is allowed; margin is what fires. */
+  /* expect: no-universal-reset */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  /* Still page-wide behind a root prefix and :where(). */
+  /* expect: no-universal-reset */
+  :root :where(*) {
+    padding: 0;
   }
 }
 

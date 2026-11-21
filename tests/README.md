@@ -35,7 +35,7 @@ is the authoritative list; this table is prose around it.
 | `no-vendor-prefix` | no prefixes for stable features |
 | `no-unanchored-has` | `:has()` anchored to a specific selector |
 | `no-forced-color-adjust-none` | never disable forced-colors |
-| `no-outline-none` | never remove a focus indicator without replacing it |
+| `no-outline-none` | never remove a focus indicator without replacing it; a `box-shadow`-only ring does not count (forced-colors mode removes it) |
 | `max-selector-depth` | no deep descendant chains |
 | `unregistered-animated-property` | `@property` registration before a custom property is interpolated |
 | `no-layout-animation` | no transitioned/`@keyframes`-animated layout properties (`block-size`, `inset-*`, `margin`, …) |
@@ -46,6 +46,9 @@ is the authoritative list; this table is prose around it.
 | `no-unit-line-height` | `line-height` is unitless (no `px`/`rem`/`em`/`%`) |
 | `incomplete-line-clamp` | `-webkit-line-clamp` has `display: -webkit-box` + `-webkit-box-orient: vertical`; no lone unprefixed `line-clamp` |
 | `no-root-overflow-x-hidden` | no `overflow-x`/`overflow-inline: hidden` on `html`/`body`/`:root` |
+| `no-universal-reset` | only `box-sizing` on a page-wide universal selector (`*`, `*::before`, `:where(*)`, `html *`); scoped (`.stack > * + *`) and nested `*` are ignored |
+| `no-viewport-full-width` | no `100vw`/`100dvw`/`100svw`/`100lvw` in `width`/`inline-size`/`min-*` (viewport-width units ignore the classic scrollbar); caps and fluid type are fine |
+| `no-invalid-has` | no `:has()` inside `:has()` and no pseudo-element in its argument (the selector is invalid and the rule is dropped) |
 
 `unregistered-animated-property` is the only rule that reads across files:
 `@property` registrations are collected from every path in one invocation,
@@ -149,12 +152,37 @@ saying which exception applies.
 Keep the false-positive rate near zero. A linter that cries wolf gets disabled,
 and then the rules stop being enforced at all.
 
+## Baseline drift check
+
+```sh
+node tests/baseline-check.mjs                    # as of today (needs network)
+node tests/baseline-check.mjs --date 2027-01-15  # as of another day
+node tests/baseline-check.mjs --self-test        # offline; run.sh runs this
+```
+
+Checks every row of the Feature Stability tables in `browser-profiles.md`
+against the live webstatus.dev API and reports:
+
+- a row in the wrong tier (for example, a newly-available feature past its
+  12-month Stable date, or a "Stable" feature webstatus.dev lists as limited)
+- a feature that reached widely available but whose row doesn't say so, which
+  means its capability needs flipping to `true` on `enterprise`
+- a row whose newly-available date doesn't match
+
+It ends with the next eight date-driven crossings. It reports; it never edits
+the file, because the prose and exceptions stay hand-written. Each row names its
+feature ids in an invisible comment (`<!-- ws: dir-pseudo -->`), or opts out
+with a reason (`<!-- ws-skip: grouped with the non-Baseline shorthand -->`).
+The offline self-test fails on any unannotated row, so new rows can't skip the
+check. It is zero-dependency (Node 18+ `fetch`) and stays out of CI because it
+needs the network.
+
 ## Possible additions
 
 - **Browser-profile compliance.** The highest-value missing check: flag features
-  that exceed the resolved profile. Needs Baseline data — the `web-features` npm
-  package is the official source that powers webstatus.dev, but adopting it
-  means taking a dependency and losing the zero-install property.
+  that exceed the resolved profile. The ids in `browser-profiles.md` now map
+  rows to webstatus.dev, but the linter would also need a CSS-feature → id
+  table, so it is still open.
 - **Computed checks.** Selector specificity ≤ (0,2,0), magic-number detection,
   WCAG AA contrast math on token pairs. Higher value, higher false-positive risk.
 - **A stylelint config export**, for editor squiggles, once the rule set settles.

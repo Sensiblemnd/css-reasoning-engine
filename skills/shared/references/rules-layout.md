@@ -218,6 +218,20 @@ Required mappings (use left column; right column is prohibited unless the effect
 
 Exception: viewport-anchored effects (e.g., a shadow that must stay on the physical right edge) — document the exception with a comment.
 
+Not every physical value should become logical. Ask whether it should flip in a right-to-left context. A drop shadow lit from one side, or a physical-direction gesture, should not, so keep the physical property there with a comment.
+
+### Direction-Dependent Styling: `:dir()` — Stability: Stable
+
+- Required: `:dir(rtl)` / `:dir(ltr)` for the styles logical properties cannot express: mirroring a directional icon (chevron, arrow, "next" glyph) with `scale: -1 1`, or swapping an asymmetric gradient. Never `[dir="rtl"]`: an attribute selector only matches the element carrying the attribute and misses inherited direction, `dir="auto"`, and direction set by the user agent. `:dir()` matches the computed direction.
+
+```css
+@layer components {
+  .pager-next-icon:dir(rtl) {
+    scale: -1 1;
+  }
+}
+```
+
 ## Container Queries
 
 Priority: HIGH
@@ -317,7 +331,8 @@ Priority: HIGH
 
 - Required: `dvh` for any block-size/height rule that spans (or is bounded by) the viewport on mobile-affected layouts — app shells, full-screen modals/sheets, `min-height`/`max-height` clamps. Never bare `100vh` for these; mobile browser chrome (address bar, toolbar) collapsing/expanding changes `vh` but not `dvh`, so `100vh` content gets clipped or leaves a dead gap.
 - Use `svh` when the layout must never resize as browser chrome collapses (avoids a jump/reflow); `lvh` for background/decorative sizing where overflow is acceptable.
-- `dvw`/`svw`/`lvw` exist but rarely matter in practice — the dynamic-viewport problem is a *height* problem (collapsing browser chrome), not a width problem. Do not reach for `dvw` by default; plain `vw`/`%` is fine for widths unless a specific horizontal chrome element (e.g. a resizable side panel) is identified.
+- `dvw`/`svw`/`lvw` exist but rarely matter in practice — the dynamic-viewport problem is a *height* problem (collapsing browser chrome), not a width problem. Do not reach for `dvw` by default.
+- Prohibited: `100vw` (or `100dvw`/`100svw`/`100lvw`, or a `calc()` built on them) as a `width`/`inline-size`/`min-inline-size`. Every viewport-width unit is measured as if classic scrollbars don't exist. With a visible 17px scrollbar, `100dvw` is 17px wider than the content area and the page scrolls sideways (measured in Chromium 156, 2026-11-21), so switching to the dynamic variant fixes nothing. Use `100%` for a full-width box. To break out of a centered column, use a full-bleed grid (`grid-template-columns: [full-start] minmax(var(--space-m), 1fr) [content-start] min(100%, 60rem) [content-end] minmax(var(--space-m), 1fr) [full-end]`), not viewport math. `vw` stays fine inside `clamp()` for fluid type and as a cap (`max-inline-size: min(40rem, 100vw)`). Never hide the resulting overflow on the root ([Overflow](#overflow)).
 - Required: pair every mobile-affected `100vh`/`50vh`/etc. with its `dvh` counterpart. If the profile requires a fallback (`enterprise`/`legacy`, capability `false`), keep `vh` as the pre-enhancement value and upgrade inside `@supports (height: 100dvh)`; for `modern`/`evergreen` (`dvh` capability `true`), emit `dvh` directly with no `vh` fallback and no `@supports` wrapper.
 
 Preferred:
@@ -401,5 +416,6 @@ Priority: MEDIUM
 ```
 
 - Required: anchor `:has()` to a specific selector. Never `*:has(...)` or bare `:has()` on a universal ancestor.
+- Never nest `:has()` inside `:has()` (directly or through `:is()`/`:where()`/`:not()`), and never put a pseudo-element in its argument (`:has(::before)`, `:has(input::placeholder)`). Both make the selector invalid, so the whole rule is dropped silently. Express the inner condition as a compound instead: `.card:has(.media img)`, not `.card:has(.media:has(img))`.
 - Prefer `:is()` to flatten selector lists; prefer `:where()` when the group must add zero specificity.
 - Prefer `:not()` with a simple argument; never stack `:not()` chains deeper than 2.

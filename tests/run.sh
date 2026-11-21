@@ -17,6 +17,11 @@ echo "== linter self-test =="
 if ! node tests/lint.mjs --self-test; then
   status=1
 fi
+# Offline: every Feature Stability row is annotated with webstatus.dev ids,
+# and the drift logic is correct. The live check (network) is run by hand.
+if ! node tests/baseline-check.mjs --self-test; then
+  status=1
+fi
 
 if [ "${1:-}" = "--fast" ]; then
   exit "$status"

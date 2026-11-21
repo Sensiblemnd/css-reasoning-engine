@@ -23,7 +23,7 @@ Required: every change to a rule, a skill, the linter, or Baseline data ends wit
 - `tests/README.md`: the rule table (one row per rule in `--list-rules`) and the benchmark finding count.
 - `tests/benchmarks/README.md`: its finding count. Re-run `node tests/lint.mjs tests/benchmarks/product-card.css` after any linter change.
 - `CLAUDE.md`: the repository structure file map (one-line description per reference file).
-- `skills/shared/references/browser-profiles.md`: the verification notes at the top, the Emerging ages, and the "next crossings" list. Promote any feature whose 12-month Stable date has passed as of today, and update every rule section, capability-map row, and example that still treats it as Emerging (for example, a leftover `@supports` guard).
+- `skills/shared/references/browser-profiles.md`: the verification notes at the top, the Emerging ages, and the "next crossings" list. Run `node tests/baseline-check.mjs` (needs network) and fix every row it reports. Its "Next crossings" output is the source for that list. Give every new Feature Stability row a `<!-- ws: <webstatus-id> -->` comment, or `<!-- ws-skip: reason -->` when webstatus.dev's grouping doesn't match the row; `run.sh` fails on an unannotated row. Promote any feature whose 12-month Stable date has passed as of today, and update every rule section, capability-map row, and example that still treats it as Emerging (for example, a leftover `@supports` guard).
 - Each skill's rule-routing table (`css-engineer`, `css-reviewer`): topic lists must name the sections each reference file now contains.
 
 `planning/` is gitignored historical material: never update it. Report which docs were changed and which were checked and found current.
@@ -34,21 +34,22 @@ Required: every change to a rule, a skill, the linter, or Baseline data ends wit
 skills/
 ├── shared/references/     # single source of truth for all rules, loaded on demand
 │   ├── browser-profiles.md      # profile resolution, capability map, @supports rules
-│   ├── prohibited-patterns.md   # canonical never-generate list, with per-role handling
-│   ├── rules-architecture.md    # cascade layers, imports, component boundaries, specificity, nesting, @scope
-│   ├── rules-layout.md          # Grid/Flexbox, named grid areas, display: contents, subgrid, logical properties, container queries, overflow, viewport units, safe-area insets, print, :has()
-│   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), contrast-color(), clamp(), round(), text-wrap, text-box-trim, line-height, lh units, line clamping
+│   ├── prohibited-patterns.md   # canonical never-generate list, with per-role handling and precedence over other installed guidance
+│   ├── rules-architecture.md    # cascade layers, reset scope, imports, component boundaries, web components, specificity, nesting, @scope
+│   ├── rules-layout.md          # Grid/Flexbox, named grid areas, display: contents, subgrid, logical properties, :dir(), container queries, overflow, viewport units, safe-area insets, print, :has()
+│   ├── rules-color-typography.md # tokens, OKLCH, light-dark(), color-mix(), contrast-color(), clamp(), round(), text-wrap, text-box-trim, line-height, lh units, line clamping, single-line truncation
 │   ├── rules-a11y-performance.md # focus, pointer/touch, motion (pause, flashing), contrast, forced-colors, zoom/orientation, containment, animation cost, @font-face
 │   ├── rules-forms.md           # validation states, control text size, native control color, field-sizing, labels/placeholder
-│   ├── rules-interaction.md     # scroll snap, overscroll, scrollbars, overlays/top layer, :open, ::details-content, ::highlight(), scroll-state, carousels
+│   ├── rules-interaction.md     # scroll snap, overscroll, scrollbars, overlays/top layer, invoker commands, :open, ::details-content, ::highlight(), scroll-state, carousels
 │   └── rules-advanced.md        # @property, @starting-style, scroll-driven animations, shapes/clipping, View Transitions, Anchor Positioning, @function
 ├── css-engineer/SKILL.md  # role: generate new CSS
 ├── css-reviewer/SKILL.md  # role: audit existing CSS, report structured findings, never rewrite
 └── css-refactor/SKILL.md  # role: modernize CSS without changing rendering
-docs/           # static GitHub Pages site (index.html + styles.css), no build step
+docs/           # static GitHub Pages site (index.html + styles.css), no build step; also modern-web-guidance-gap-analysis.md
 planning/       # original project briefs, not part of the published site
 tests/          # zero-dependency linter for the mechanically checkable rules
 ├── lint.mjs        # rule engine + CLI (--self-test, --list-rules)
+├── baseline-check.mjs # Feature Stability rows vs live webstatus.dev data (network; --self-test is offline)
 ├── run.sh          # self-test, then gate repo stylesheets and skill examples
 ├── README.md       # rule table, anti-example markers, benchmark notes
 ├── fixtures/       # compliant.css (must be clean) + violations.css (annotated) + examples.md (extraction test)

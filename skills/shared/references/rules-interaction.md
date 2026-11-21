@@ -107,6 +107,8 @@ Rules:
 
 - Required: `::backdrop` for the dimming layer behind a modal `<dialog>`. Never a sibling `.overlay` element with manual `position: fixed` and `z-index` standing in for it.
 - Required: `[popover]` (not a `role="dialog"` div with hand-wired listeners) for transient UI — menus, tooltips, toasts — that should light-dismiss on outside click, `Escape`, or opening another popover. That behavior is native to the top layer and popover semantics; reimplementing it in JS reproduces the same edge cases (focus trap, nested-popover close order) the platform already solved.
+- Prefer declarative opening over a click listener when the markup is in scope: `popovertarget` for popovers (Stable, with `popover`), and invoker commands (`<button commandfor="id" command="show-modal">`) for modal dialogs. Invoker commands are Emerging, so on `evergreen` and below keep a script fallback. A `<button>` with `commandfor` does nothing in older engines.
+- Required: leave `margin` on `<dialog>` and `[popover]` to the UA stylesheet. Their centering is the UA's `inset: 0` plus `margin: auto`, so any author `margin` on them (a `*` reset, a `margin: 0` in `base`) pins both to the top-left corner. This is why margin resets are per element type, never `*` ([rules-architecture.md](rules-architecture.md) Reset Scope).
 - Prefer `:open` — Stability: Emerging, direct on `modern`, `@supports`-gated on `evergreen` — for the open state of `<details>`, `<dialog>`, `<select>`, and `<input>` pickers, instead of the `[open]` attribute selector (which cannot see a `<select>` or picker at all). `:open` does **not** match popovers: a showing `[popover]` is `:popover-open`, a separate state. Always anchor `:open` to a component selector, never bare.
 
 ```css

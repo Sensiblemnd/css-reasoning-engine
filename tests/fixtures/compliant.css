@@ -74,6 +74,26 @@
     outline-offset: 2px;
   }
 
+  /* Near-miss for no-outline-none: a box-shadow ring is fine when a
+     transparent outline stays underneath for forced-colors mode. */
+  :where(summary):focus-visible {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px var(--color-focus);
+  }
+
+  /* Near-misses for no-invalid-has: :has() with :is()/:not() inside, and a
+     pseudo-element outside the :has() argument. */
+  :where(figure):has(:is(img, video):not([alt=""]))::after {
+    content: "";
+  }
+
+  /* Near-miss for no-viewport-full-width: 100vw as a cap, and 100vi in
+     fluid type, are not full-width boxes. */
+  :where(dialog) {
+    max-inline-size: min(40rem, 100vw);
+    font-size: clamp(1rem, 0.9rem + 1vw, 1.25rem);
+  }
+
   :where(h1, h2, h3) {
     text-wrap: balance;
   }
@@ -96,6 +116,24 @@
   @media (width >= 48rem) {
     .shell {
       grid-template-columns: 16rem 1fr;
+    }
+  }
+
+  /* Near-misses for no-universal-reset: a scoped universal (the stack
+     pattern) and a nested `*` are not page-wide. */
+  .stack > * + * {
+    margin-block-start: var(--space-s);
+  }
+
+  /* Near-miss for max-selector-depth: three compounds with spaced child
+     combinators is the limit, not over it. */
+  .shell > .region > .panel {
+    gap: var(--space-s);
+  }
+
+  .prose {
+    * {
+      margin-block: 0;
     }
   }
 }

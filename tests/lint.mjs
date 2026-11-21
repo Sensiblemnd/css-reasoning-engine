@@ -262,18 +262,21 @@ function splitSelectors(selector) {
 
 function compoundCount(selector) {
   // Split one selector on descendant/child/sibling combinators, ignoring
-  // combinators inside :is()/:where()/:has()/[attr].
+  // combinators inside :is()/:where()/:has()/[attr]. A run of whitespace and
+  // combinator characters is one combinator, so `.a > .b` is 2, not 3.
   let depth = 0;
   let parts = 1;
-  let sawSpace = false;
+  let started = false;
+  let pending = false;
   for (const ch of selector) {
+    if (depth === 0 && (/\s/.test(ch) || ">+~".includes(ch))) {
+      if (started) pending = true;
+      continue;
+    }
     if (ch === "(" || ch === "[") depth++;
     else if (ch === ")" || ch === "]") depth--;
-    else if (depth === 0) {
-      if (/\s/.test(ch)) sawSpace = true;
-      else if (">+~".includes(ch)) { parts++; sawSpace = false; }
-      else if (sawSpace) { parts++; sawSpace = false; }
-    }
+    if (pending) { parts++; pending = false; }
+    started = true;
   }
   return parts;
 }
@@ -343,6 +346,33 @@ const SEMANTIC_ELEMENTS = new Set([
   "table", "caption", "thead", "tbody", "tfoot", "tr", "th", "td",
   "nav", "main", "header", "footer", "aside", "search", "article", "form", "fieldset", "figure",
 ]);
+
+// A selector that matches every element on the page (or every pseudo-element
+// of one kind): `*`, `*::before`, `::after`, `:where(*)`, `html *`, `:root *`.
+// Scoped universals (`.stack > * + *`) are not page-wide and do not match.
+const UNIVERSAL_SELECTOR =
+  /^(?:(?:html|:root|body)\s+)?(?:\*|:(?:where|is)\(\s*\*\s*\))?(?:::?(?:before|after|backdrop|marker))?$/i;
+
+// The argument of every top-level :has() in a selector:
+// `.card:has(> img:hover)` → ["> img:hover"].
+function hasArguments(selector) {
+  const out = [];
+  const re = /:has\(/gi;
+  let m;
+  while ((m = re.exec(selector))) {
+    let d = 1;
+    let j = m.index + m[0].length;
+    const start = j;
+    while (j < selector.length && d > 0) {
+      if (selector[j] === "(") d++;
+      else if (selector[j] === ")") d--;
+      j++;
+    }
+    out.push(selector.slice(start, j - 1));
+    re.lastIndex = j;
+  }
+  return out;
+}
 
 // ---------------------------------------------------------------- rules
 
@@ -524,13 +554,17 @@ const RULES = [
         (d) => /^outline$/i.test(d.prop) && /^(none|0[a-z]*)$/i.test(d.value.trim()),
       );
       if (!kills) return;
+      // box-shadow does not count: forced-colors mode drops it, so a
+      // shadow-only ring vanishes in Windows High Contrast.
       const replaced = decls.some(
-        (d) => /^(box-shadow|outline-(width|style|color|offset))$/i.test(d.prop) ||
+        (d) => /^outline-(width|style|color)$/i.test(d.prop) ||
           (/^outline$/i.test(d.prop) && !/^(none|0[a-z]*)$/i.test(d.value.trim())),
       );
-      if (!replaced) {
-        report(kills.line, `\`${node.selector}\` removes the focus indicator with no replacement.`);
-      }
+      if (replaced) return;
+      const shadow = decls.some((d) => /^box-shadow$/i.test(d.prop));
+      report(kills.line, shadow
+        ? `\`${node.selector}\` replaces the outline with box-shadow only, which forced-colors mode removes; keep \`outline-color: transparent\`.`
+        : `\`${node.selector}\` removes the focus indicator with no replacement.`);
     },
   },
   {
@@ -707,6 +741,48 @@ const RULES = [
       }
       if (semantic) {
         report(d.line, `\`${node.selector}\`: display: contents on ${semantic} can drop its role; use a generic wrapper.`);
+      }
+    },
+  },
+  {
+    id: "no-universal-reset",
+    doc: "rules-architecture.md — only box-sizing on the universal selector",
+    check(node, ctx, report) {
+      // Top-level rules only: a nested `*` is scoped to its parent, not page-wide.
+      if (node.type !== "rule" || ctx.nestDepth > 1) return;
+      const universal = splitSelectors(node.selector).some((s) => s && UNIVERSAL_SELECTOR.test(s));
+      if (!universal) return;
+      const props = [...new Set(
+        node.children
+          .filter((c) => c.type === "decl" && !/^box-sizing$/i.test(c.prop))
+          .map((c) => c.prop.toLowerCase()),
+      )];
+      if (props.length) {
+        report(node.line, `\`${node.selector}\` sets ${props.map((p) => `\`${p}\``).join(", ")}; reset per element type, only box-sizing belongs on \`*\`.`);
+      }
+    },
+  },
+  {
+    id: "no-viewport-full-width",
+    doc: "rules-layout.md — 100vw (any variant) as a width overflows by the scrollbar",
+    check(node, ctx, report) {
+      if (node.type !== "decl") return;
+      if (!/^(min-)?(width|inline-size)$/i.test(node.prop)) return;
+      const m = node.value.match(/(?<![\w.-])100[sld]?vw\b/i);
+      if (m) {
+        report(node.line, `\`${node.prop}: ${node.value.trim()}\`: \`${m[0]}\` includes the classic scrollbar and overflows; use 100% or a full-bleed grid.`);
+      }
+    },
+  },
+  {
+    id: "no-invalid-has",
+    doc: "rules-layout.md — :has() cannot contain :has() or a pseudo-element",
+    check(node, ctx, report) {
+      if (node.type !== "rule") return;
+      for (const arg of hasArguments(node.selector)) {
+        if (/:has\(/i.test(arg) || /::|:(before|after|first-line|first-letter)\b/i.test(arg)) {
+          report(node.line, `\`:has(${arg})\` is an invalid selector (no nested :has(), no pseudo-elements); the whole rule is dropped.`);
+        }
       }
     },
   },

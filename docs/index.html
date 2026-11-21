@@ -84,8 +84,8 @@
           <li class="layer-card">
             <h3 class="layer-name">reset</h3>
             <dl class="layer-card-meta">
-              <dt>Contains</dt><dd>Normalization, box-sizing</dd>
-              <dt>Never</dt><dd>Component styles</dd>
+              <dt>Contains</dt><dd>Normalization, box-sizing, per-element margin resets</dd>
+              <dt>Never</dt><dd>Component styles, any <code>*</code> declaration except box-sizing</dd>
             </dl>
           </li>
           <li class="layer-card">
@@ -178,7 +178,7 @@
         <div class="section-heading">
           <h2 class="section-heading-title">Verified, not just documented</h2>
           <p class="section-heading-lede">
-            Twenty-four of the rules are enforced by a zero-dependency linter, so they are executable
+            Twenty-seven of the rules are enforced by a zero-dependency linter, so they are executable
             rather than advisory. This site's own stylesheet, and every example inside the skill
             files, is gated by it on every push. The
             judgment rules, whether a token is semantic or whether <code>@scope</code> is warranted,
@@ -192,9 +192,9 @@
 
 == linter self-test ==
 pass  compliant.css produced no findings
-pass  violations.css matched all 38 expected findings
+pass  violations.css matched all 45 expected findings
 pass  examples.md extraction matched expectations
-pass  all 24 rules covered by fixtures
+pass  all 27 rules covered by fixtures
 
 == repo stylesheets ==
 No findings across 1 file(s).

@@ -14,7 +14,7 @@ Layer contract:
 
 | Layer | Contains | Never contains |
 | ----- | -------- | -------------- |
-| `reset` | Normalization, box-sizing | Component styles |
+| `reset` | Normalization, box-sizing, per-element margin resets | Component styles, any `*` declaration except `box-sizing` |
 | `tokens` | `:root` custom properties, `@property` registrations, `@font-face` | Selectors other than `:root` / `::backdrop` |
 | `base` | Element defaults (`body`, `a`, `h1`–`h6`) | Class selectors |
 | `layout` | Page-level scaffolding (shells, grids, regions) | Component internals |
@@ -27,6 +27,48 @@ Rules:
 - Never emit a style rule outside `@layer` unless explicitly requested.
 - Never re-declare the layer order in another file; `@layer components { }` blocks append, order stays fixed.
 - Never fight layer order with specificity — move the rule to the correct layer instead.
+
+### Reset Scope
+
+Priority: HIGH
+
+A page-wide `*` rule is not a low-priority default, even in the lowest layer. It matches every element directly, so it beats three things a layer cannot protect:
+
+1. **The UA stylesheet.** Any author layer beats UA styles. `* { margin: 0 }` removes the `margin: auto` that centers a modal `<dialog>` and a showing `[popover]`, and both render pinned to the top-left corner ([rules-interaction.md](rules-interaction.md) Overlays).
+2. **Web components.** `*` matches every custom element's host. For normal declarations, page styles beat a shadow root's `:host` and `::slotted()` rules, and that comparison happens before layers are considered, so the component cannot restore its own value without `!important`.
+3. **Inheritance.** A direct declaration always beats an inherited value. `* { line-height: 1.5 }` in `reset` overrides the `line-height` a component sets on its root for every descendant, whatever layer the component is in.
+
+Rules:
+
+- Required: reset margins per element type with a zero-specificity list, never on `*`. Leave `dialog`, `[popover]`, and custom elements out of it.
+- `box-sizing: border-box` on `*, *::before, *::after` is the one allowed universal declaration. Accepted trade-off: it also overrides a component's `:host { box-sizing }`, but it never reaches inside a shadow tree, so a component that needs `content-box` sets it on an inner element.
+- Never put any other declaration on a page-wide `*` (`*`, `::before`, `:where(*)`, `html *`), in any layer: not `margin`, `padding`, `font`, `color`, `line-height`, or `border`. Scoped universals (`.stack > * + *`) are not resets and are unaffected.
+- Refactoring an existing `*` margin reset into the per-element list is not rendering-neutral. Every element outside the list that has a UA margin gets it back: `dialog` and `[popover]` (the intended fix), plus checkbox and radio inputs, `fieldset`, and any element the list leaves out. Before changing it, list the elements the page uses. Give each component that relied on the old zero margin an explicit `margin: 0` (a visually-hidden utility is the usual one), then report the change as medium risk.
+
+```css
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  :where(body, h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, ol, ul, menu, pre, hr) {
+    margin: 0;
+  }
+}
+```
+
+Avoid:
+
+```css
+@layer reset {
+  * {
+    margin: 0;
+    padding: 0;
+  }
+}
+```
 
 ### Existing Layer Architecture
 
@@ -142,6 +184,58 @@ Avoid:
 ```css
 .sidebar .card .card-title a {
   color: var(--color-accent);
+}
+```
+
+### Web Components (Shadow DOM) — Stability: Stable
+
+Priority: HIGH
+
+A shadow root is a hard component boundary. Page selectors don't match inside it, and the component's rules don't leak out. Only inherited properties cross it, and custom properties are inherited. So the design system's semantic tokens reach every component, while resets, `base` element defaults, and utilities from the page do not.
+
+Authoring a component's own stylesheet:
+
+- Required: `:host { display: block }` (or another non-inline display). Custom elements default to `display: inline`, which ignores `container-type` and block sizing.
+- Required: theme through custom properties. Read each public property once into a private alias on `:host`, with the page's semantic token as the fallback: `--_card-surface: var(--card-surface, var(--color-surface))`. Never set the public property itself on `:host`, because then only a rule on the host element can override it, not an ancestor.
+- Prefer `:state(name)` (set through `ElementInternals.states`) over a reflected class or `data-*` attribute when the component owns the state. Consumers can style it but cannot set or forge it. Use `:host([attr])` for states the consumer sets.
+- `::slotted()` matches only the top-level nodes assigned to a slot, never their descendants, and it loses to the page's own rules for that content. Use it for light defaults only.
+- Never `:host-context()`. webstatus.dev lists it as limited availability: Chromium only, and Firefox and Safari have declined to ship it. Theme through inherited custom properties instead.
+- Cascade layers inside a shadow root are scoped to it. The page's layer order does not apply. Declare the same layer names in component sheets for consistency, and remember that page resets do not reach inside. A component that wants `box-sizing: border-box` declares it in its own sheet.
+- Native controls inside a component (`<button>`, `<input>`, `<select>`) don't inherit `font` from the host. Set `font: inherit` on them, or they render in the UA font.
+
+Consuming components from page CSS:
+
+- Style a component only through its public API: custom properties, `::part(name)`, `:state(name)`, and host attributes. Put these rules in `components`, using tokens like any other component rule.
+- A page rule on the host element (`product-card { margin-block: … }`) beats the component's own `:host` rule. That is the intended channel for consumer layout. It is also why a page-wide `*` reset must not set anything but `box-sizing` ([Reset Scope](#reset-scope)).
+
+```css
+/* the component's shadow-root stylesheet */
+@layer components {
+  :host {
+    display: block;
+    container-type: inline-size;
+    --_card-surface: var(--card-surface, var(--color-surface));
+  }
+
+  .card-body {
+    background: var(--_card-surface);
+    padding: var(--space-m);
+  }
+
+  :host(:state(busy)) .card-body {
+    opacity: 0.6;
+  }
+}
+
+/* the page stylesheet */
+@layer components {
+  product-card {
+    --card-surface: var(--color-surface-raised);
+  }
+
+  product-card::part(cta) {
+    background: var(--color-accent);
+  }
 }
 ```
 

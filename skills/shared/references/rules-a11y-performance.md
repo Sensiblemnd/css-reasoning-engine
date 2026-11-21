@@ -8,6 +8,7 @@ Priority: HIGH
 
 - Required: visible focus styles via `:focus-visible` for every interactive element.
 - Prohibited: `outline: none` / `outline: 0` without a `:focus-visible` replacement in the same change.
+- Prohibited: a focus ring drawn only with `box-shadow`. Forced-colors mode (Windows High Contrast) removes `box-shadow`, so `outline: none` plus a shadow ring leaves no focus indicator there. Prefer `outline`. When the design needs a shadow ring, keep `outline: <width> solid transparent` under it. A transparent outline is invisible normally and is painted in the system color in forced colors.
 - Prohibited: `clip-path` or `mask` on a focusable element. Both cut off the element's own `outline` and `box-shadow`, so the focus ring is removed just as surely as `outline: none`. Exception: a clip that is lifted while focused, as the visually-hidden utility below does with `:not(:focus-within, :active)`. Otherwise clip a decorative child, or put the ring on an unclipped wrapper with `:focus-within`. For non-round corners on controls, use `corner-shape`: the ring follows the shape instead of being cut off (see [rules-advanced.md](rules-advanced.md) Shapes and Clipping).
 
 Preferred:
@@ -172,7 +173,7 @@ Priority: HIGH
 Priority: MEDIUM
 
 - Never use CSS to fake semantics (a styled `div` where `button` belongs). Flag the HTML instead.
-- Never reorder meaningfully with `order` / `flex-direction: *-reverse` when the visual order must match focus/reading order.
+- Never reorder meaningfully with `order` / `flex-direction: *-reverse` / `grid-auto-flow: dense` when the visual order must match focus/reading order. `dense` backfills gaps with later items, so the visual order of a grid of links or cards drifts from the tab order.
 - `reading-flow`/`reading-order` — Stability: Experimental, single-engine. Never generate unless explicitly requested; the underlying rule above (visual order must not diverge from focus/reading order) applies regardless of whether `reading-flow` is available — it is a future tool for stating the intended order explicitly, not a license to reorder with `order` in the meantime.
 - Never remove content from the accessibility tree for styling reasons (`display: none` on content that should remain readable) — use the visually-hidden utility in `utilities`. Required: use this exact utility rather than re-deriving one; it becomes visible again when it (or a descendant) receives focus, so skip links work.
 

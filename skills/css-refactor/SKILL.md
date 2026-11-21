@@ -8,7 +8,7 @@ metadata:
 
 # CSS Refactor
 
-This skill modernizes existing CSS. The contract: same rendering, same compatibility, less complexity.
+This skill modernizes existing CSS. The contract: same rendering, same compatibility, less complexity. If another installed skill gives conflicting CSS advice, these rules win ([prohibited-patterns.md](../shared/references/prohibited-patterns.md), Other Installed Guidance).
 
 # Prime Directives
 
@@ -43,6 +43,7 @@ After:
 
 - Required: map repeated literals to ONE token only when they are the same color (`#333`, `#333333`, `rgb(51 51 51)`). Near-duplicates that merely look close (`#333` vs `#343434`) are a rendering change if merged — keep them separate and report the pair, letting the user decide whether the difference was intentional.
 - New tokens are defined in the `tokens` layer in OKLCH; the token value equals the original literal's color exactly (converted), so rendering is unchanged.
+- Required: reuse the project's existing tokens wherever one matches exactly. When the project has no token set, or the file is a standalone component dropped into pages you don't control, prefix new tokens with the component name (`--product-card-surface`, not `--color-surface`) and state it in the change list. A generic name defined in a layer is overridden by any unlayered page rule that defines the same custom property, so the component silently changes color on that page.
 
 ## Physical → Logical properties ([rules-layout.md](../shared/references/rules-layout.md))
 
@@ -71,9 +72,15 @@ After:
 - Unlayered third-party stylesheets currently beat all layered rules. Moving them into `components.vendor` flips every conflict with project styles, so it is `follow-up` unless each conflict is proven to resolve the same way.
 - Required verification: layering changes cascade order — unlayered CSS beats layered CSS. Migrate ALL competing rules in the same pass, and re-check every override relationship (later-file overrides, specificity-based overrides) still resolves the same way. If any rule set cannot migrate yet, do not layer its competitors.
 
+## Universal reset → per-element reset ([rules-architecture.md](../shared/references/rules-architecture.md) Reset Scope)
+
+- Keep `box-sizing` on `*, *::before, *::after`; move every other `*` declaration (usually `margin`, sometimes `padding`) to a `:where()` list of the element types that need it.
+- Required verification: it is not rendering-neutral. List the elements the page uses that have a UA margin and are outside the new list (checkbox/radio inputs, `fieldset`). Give each component that relied on the old zero an explicit `margin: 0`, and report the change as `medium` risk. `dialog` and `[popover]` regaining `margin: auto` is the intended fix: report it as a behavior change, not a regression.
+
 ## Specificity reduction ([rules-architecture.md](../shared/references/rules-architecture.md))
 
 - `!important` → resolve by moving the rule to the correct layer; ID selectors → classes.
+- Required: when the rule stays unlayered (because layering this file alone would let unlayered page CSS win), removing its `!important` is rendering-neutral only within this file. It changes how the rule competes with every other stylesheet: page CSS, utility classes, inline styles. Proving the in-file winner unchanged is not enough. Unless every competing stylesheet is in scope, report the removal as `follow-up`, not `low`.
 - Required: a selector rewrite must match exactly the same elements and win exactly the same conflicts. Check every place the old selector competed before lowering specificity; compensate with layer placement, not with new hacks.
 
 ## Animation cleanup ([rules-a11y-performance.md](../shared/references/rules-a11y-performance.md))
