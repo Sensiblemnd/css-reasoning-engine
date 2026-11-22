@@ -13,6 +13,9 @@
   color: var(--color-accent);
 }
 
+/* Used before the order statement below, so this block, not the statement,
+   fixes where `layout` sorts. */
+/* expect: layer-order */
 @layer layout {
   /* expect: no-prefixed-media-range */
   @media (min-width: 48rem) {
@@ -21,6 +24,34 @@
     }
   }
 }
+
+@layer reset, tokens, base, layout, components, utilities, overrides;
+
+/* Typo: `component` is a new layer after `overrides`, so it beats them all. */
+/* expect: layer-order */
+@layer component {
+  .typo-layer {
+    color: var(--color-accent);
+  }
+}
+
+/* expect: layer-order */
+@layer {
+  .anonymous-layer {
+    color: var(--color-accent);
+  }
+}
+
+/* A second order statement; a single-name `@layer components.vendor;` is fine. */
+/* expect: layer-order */
+@layer base, reset;
+
+@layer components.vendor;
+
+/* An @import into a layer the order doesn't list. (Out of place for real
+   CSS, where @import must come first; the linter checks names, not position.) */
+/* expect: layer-order */
+@import url("theme.css") layer(theme);
 
 @layer components {
   /* expect: no-important */

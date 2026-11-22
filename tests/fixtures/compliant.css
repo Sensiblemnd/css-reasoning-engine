@@ -6,6 +6,12 @@
 
 @layer reset, tokens, base, layout, components, utilities, overrides;
 
+/* Near-misses for layer-order: a single-name sublayer statement, an @import
+   into a declared layer's sublayer, and (below) a layer block nested inside
+   @media and a sublayer block inside `components`. */
+@layer components.vendor;
+@import url("vendor/datepicker.css") layer(components.vendor);
+
 @layer reset {
   *,
   *::before,
@@ -259,5 +265,17 @@
   /* Third-party widget ships inline styles; documented exception. */
   .vendor-widget-root {
     display: block !important;
+  }
+}
+
+/* Near-miss for layer-order: a declared layer inside @media, with a sublayer
+   (`card`) that is not in the top-level order and must not be flagged. */
+@media (prefers-reduced-motion: no-preference) {
+  @layer components {
+    @layer card {
+      .card-motion {
+        transition: opacity 0.2s ease;
+      }
+    }
   }
 }

@@ -165,7 +165,7 @@ Never emit anything on the canonical list in [prohibited-patterns.md](../shared/
 Required: verify every item before emitting CSS. If any item fails, fix the CSS first.
 
 Architecture:
-- [ ] All rules inside cascade layers; layer order declared once
+- [ ] All rules inside cascade layers; layer order declared once, before any layer is used; every layer name is in that order
 - [ ] Tokens used for color, spacing, type, radius, shadow, z-index
 - [ ] Specificity ≤ (0,2,0); no ID selectors; no `!important`
 - [ ] Page-wide `*` rules set only `box-sizing`; margin resets are per element type

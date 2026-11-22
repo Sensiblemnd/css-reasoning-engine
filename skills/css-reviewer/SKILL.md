@@ -35,7 +35,7 @@ Required order:
    node tests/lint.mjs <files>
    ```
 
-   Treat its output as a floor, not a verdict. It covers 27 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
+   Treat its output as a floor, not a verdict. It covers 28 deterministic rules with near-zero false positives; it does not check profile compliance, token semantics, `@scope` suitability, component boundaries, or contrast. A clean run means the mechanical rules pass, nothing more — continue to step 5 regardless. Never report a linter finding without confirming it is valid for the resolved profile, and never suppress your own finding because the linter missed it.
 5. Audit the four categories below.
 6. Emit findings in the Required output format, ordered by severity.
 
@@ -45,6 +45,7 @@ Required order:
 
 Check for:
 - Missing cascade layers / unlayered rules
+- The layer order itself: a layer block or `@import … layer()` before the order statement, a layer name that isn't in the declared order (a typo like `component` becomes a new top layer), or an anonymous `@layer { }`. Check component files against the entry stylesheet's order.
 - Excessive specificity (> (0,2,0) in components, ID selectors, `!important`)
 - Duplicate styles that an existing token, utility, or component already provides
 - Poor component boundaries (cross-component descendant selectors, global tag styling in components)

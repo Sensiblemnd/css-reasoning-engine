@@ -79,7 +79,7 @@
       <section id="layers" class="panel">
         <div class="section-heading">
           <h2 class="section-heading-title">The layer contract</h2>
-          <p class="section-heading-lede">Every rule the skills generate lands in exactly one of these layers, declared once, in this order.</p>
+          <p class="section-heading-lede">Every rule the skills generate lands in exactly one of these layers, declared once, in this order. The linter checks the order itself too: a misspelled layer name or a layer used before the order is declared would quietly change which styles win, so both are flagged.</p>
         </div>
         <ol class="layer-stack">
           <li class="layer-card">
@@ -179,7 +179,7 @@
         <div class="section-heading">
           <h2 class="section-heading-title">Verified, not just documented</h2>
           <p class="section-heading-lede">
-            Twenty-seven of the rules are enforced by a zero-dependency linter, so they are executable
+            Twenty-eight of the rules are enforced by a zero-dependency linter, so they are executable
             rather than advisory. This site's own stylesheet, and every example inside the skill
             files, is gated by it on every push. The
             judgment rules, whether a token is semantic or whether <code>@scope</code> is warranted,
@@ -195,9 +195,9 @@
 
 == linter self-test ==
 pass  compliant.css produced no findings
-pass  violations.css matched all 45 expected findings
+pass  violations.css matched all 50 expected findings
 pass  examples.md extraction matched expectations
-pass  all 27 rules covered by fixtures
+pass  all 28 rules covered by fixtures
 pass  baseline-check: 57 rows annotated, tier and drift logic correct
 
 == repo stylesheets ==

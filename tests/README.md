@@ -23,6 +23,7 @@ is the authoritative list; this table is prose around it.
 | Rule | Enforces |
 | ---- | -------- |
 | `no-unlayered` | every rule lives in a cascade layer |
+| `layer-order` | the order statement comes before any layer block or `@import … layer()`; no layer name outside the declared order (typos are named, e.g. "did you mean `components`?"); no anonymous `@layer { }`; no second order statement. A file without its own order is checked against the order declared by another file in the same run, so lint component files together with the entry stylesheet |
 | `no-important` | `!important` only in the `overrides` layer |
 | `no-id-selector` | no ID selectors |
 | `no-literal-color` | components reference semantic tokens, not literals |

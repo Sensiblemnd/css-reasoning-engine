@@ -374,6 +374,46 @@ function hasArguments(selector) {
   return out;
 }
 
+// Top-level cascade-layer events in source order: order statements
+// (`@layer a, b;`), layer blocks (`@layer a { }`, `@layer a.b { }`,
+// anonymous `@layer { }`) and `@import … layer(a)`. Blocks nested inside
+// another layer are sublayers and do not affect the top-level order.
+function layerEvents(nodes, out = []) {
+  for (const node of nodes) {
+    if (node.type !== "atrule") continue;
+    if (node.name === "layer") {
+      const names = node.prelude.split(",").map((s) => s.trim().split(".")[0]).filter(Boolean);
+      if (!node.children) out.push({ kind: "statement", line: node.line, names: [...new Set(names)] });
+      else out.push({ kind: "block", line: node.line, name: names[0] ?? null });
+      continue; // never descend: anything inside is a sublayer
+    }
+    if (node.name === "import") {
+      const m = node.prelude.match(/\blayer\(\s*([\w-]+)/i);
+      if (m) out.push({ kind: "import", line: node.line, name: m[1] });
+      continue;
+    }
+    if (node.children) layerEvents(node.children, out); // @media, @supports, @scope…
+  }
+  return out;
+}
+
+// The file's layer order: its first statement that names two or more layers.
+function declaredLayerOrder(nodes) {
+  const stmt = layerEvents(nodes).find((e) => e.kind === "statement" && e.names.length > 1);
+  return stmt ? stmt.names : null;
+}
+
+function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+  }
+  return d[a.length][b.length];
+}
+
 // ---------------------------------------------------------------- rules
 
 const RULES = [
@@ -775,6 +815,38 @@ const RULES = [
     },
   },
   {
+    id: "layer-order",
+    doc: "rules-architecture.md — layers used only as declared, after the order statement",
+    check(node, ctx, report) {
+      if (node.type !== "stylesheet") return;
+      const events = layerEvents(node.children);
+      const own = events.find((e) => e.kind === "statement" && e.names.length > 1);
+      const order = own ? own.names : ctx.sharedLayerOrder;
+      if (!order) return; // nothing to check against: the order lives elsewhere
+      const known = new Set(order);
+      const last = order[order.length - 1];
+
+      for (const e of events) {
+        if (e.kind === "statement") {
+          if (e === own || e.names.length < 2) continue; // `@layer components.vendor;` is fine
+          report(e.line, `Second layer order \`@layer ${e.names.join(", ")}\`; declare the order once, in the entry stylesheet.`);
+          continue;
+        }
+        if (e.name === null) {
+          report(e.line, `Anonymous \`@layer { }\` sorts after \`${last}\` and beats every declared layer; name it.`);
+          continue;
+        }
+        const label = e.kind === "import" ? `@import … layer(${e.name})` : `@layer ${e.name}`;
+        if (!known.has(e.name)) {
+          const near = order.find((n) => editDistance(n, e.name) <= 2);
+          report(e.line, `\`${label}\` is undeclared, so it lands above \`${last}\`${near ? ` (did you mean \`${near}\`?)` : "; add it to the order"}.`);
+        } else if (own && e.line < own.line) {
+          report(e.line, `\`${label}\` appears before the layer order is declared; first appearance fixes its position.`);
+        }
+      }
+    },
+  },
+  {
     id: "no-invalid-has",
     doc: "rules-layout.md — :has() cannot contain :has() or a pseudo-element",
     check(node, ctx, report) {
@@ -810,7 +882,7 @@ function collectRegistrations(nodes, into = new Set()) {
 
 // ---------------------------------------------------------------- lint
 
-function lintParsed(parsed, filename, registered) {
+function lintParsed(parsed, filename, registered, sharedLayerOrder = null) {
   const { nodes, annotations, ignores, layerContext } = parsed;
   const findings = [];
   const seen = new Set();
@@ -825,9 +897,11 @@ function lintParsed(parsed, filename, registered) {
     selectorChain: [],
     layerContext,
     registered,
+    sharedLayerOrder,
   };
 
-  walk(nodes, baseCtx, (node, ctx) => {
+  // Whole-file rules (layer-order) see one synthetic stylesheet node first.
+  const visit = (node, ctx) => {
     for (const rule of RULES) {
       rule.check(node, ctx, (line, message) => {
         if (suppressed(rule.id, line)) return;
@@ -841,7 +915,9 @@ function lintParsed(parsed, filename, registered) {
         findings.push({ file: filename, line, ruleId: rule.id, message: text });
       });
     }
-  });
+  };
+  visit({ type: "stylesheet", children: nodes, line: 1 }, baseCtx);
+  walk(nodes, baseCtx, visit);
 
   findings.sort((a, b) => a.line - b.line || a.ruleId.localeCompare(b.ruleId));
   return { findings, annotations };
@@ -918,10 +994,19 @@ function lintFiles(paths) {
   const registered = new Set();
   for (const entry of parsed) collectRegistrations(entry.tree.nodes, registered);
 
+  // The layer order usually lives in the entry stylesheet only; component
+  // files in the same run are checked against it. Markdown examples are
+  // independent fragments and only ever use their own order statement.
+  const sharedLayerOrder = parsed
+    .filter((e) => !e.example)
+    .map((e) => declaredLayerOrder(e.tree.nodes))
+    .find(Boolean) ?? null;
+
   // Markdown blocks from one file are merged back into one result per file.
   const byName = new Map();
   for (const entry of parsed) {
-    const { findings, annotations } = lintParsed(entry.tree, entry.name, registered);
+    const shared = entry.example ? null : sharedLayerOrder;
+    const { findings, annotations } = lintParsed(entry.tree, entry.name, registered, shared);
     const kept = findings
       .filter((f) => !(entry.example && EXAMPLE_EXEMPT.has(f.ruleId)))
       .map((f) => ({ ...f, line: f.line + entry.offset }));

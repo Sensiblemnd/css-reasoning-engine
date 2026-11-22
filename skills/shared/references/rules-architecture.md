@@ -27,6 +27,8 @@ Rules:
 - Never emit a style rule outside `@layer` unless explicitly requested.
 - Never re-declare the layer order in another file; `@layer components { }` blocks append, order stays fixed.
 - Never fight layer order with specificity — move the rule to the correct layer instead.
+- Required: the order statement comes before any `@layer` block or `@import … layer()`. Layers sort by first appearance, so a block that appears earlier fixes its own position, and the statement can't move it afterwards.
+- Never use a layer name that isn't in the declared order, and never an anonymous `@layer { }`. An undeclared name, including a typo like `@layer component`, becomes a new layer after `overrides` and beats every declared layer. Sublayers (`components.vendor`, or `@layer card` nested inside `components`) are fine.
 
 ### Reset Scope
 
