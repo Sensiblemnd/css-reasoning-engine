@@ -316,5 +316,6 @@ Priority: LOW
 Priority: HIGH
 
 - Required: text/background token pairs meet WCAG AA (4.5:1 body, 3:1 large text/UI).
+- Required: text or icons over a gradient, and gradient-filled text, meet that ratio against every color stop the text crosses, not the average. The lightest stop decides for dark text, and the darkest for light text.
 - Never encode meaning with color alone — pair with an icon, text, or border change.
 - Prefer defining paired tokens (`--color-surface` + `--color-on-surface`) so contrast is designed once, not per component.

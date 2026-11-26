@@ -2,6 +2,15 @@
 
 Date: 2026-11-21. Compared against [GoogleChrome/modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) at commit `64a6d70` (2026-11-16). Baseline data comes from the webstatus.dev API, checked the same day.
 
+## Re-check: v1.0.2 (2026-11-26)
+
+MWG released v1.0.2 (`2b4aa13`, 2026-11-23), which touched 46 files. Three changes were adopted:
+- `anchor()` examples now use logical insets with `self-start`/`self-end` (`rules-advanced.md`).
+- Text over a gradient must meet contrast against every stop (`rules-color-typography.md`).
+- From the new `teaser` guide: never fade out links or controls with a mask, because they stay focusable while unreadable (`rules-advanced.md`).
+
+Their anchor-positioning guides now use the same `@supports (position-anchor: …)` guard our rules require. They also date the anchor and `position-area` parts as Baseline since 2026-01-13 (Firefox 147), consistent with our split note that `position-anchor` arrived last. Their new `context-menu` guide still says "limited availability", so their own data disagrees between guides. Nothing else in the release affects CSS rules: popover-polyfill hiding, `h1` in modal dialogs, menu focus handling, security and WebMCP. `node tests/baseline-check.mjs` reported no drift on 2026-11-26.
+
 ## Summary
 
 Modern Web Guidance (MWG) is a broad web-platform skill: about 205 guides, from the Chrome, Edge, Firefox and MDN teams. These skills are a narrower CSS rule system with three roles and a linter. The two overlap less than expected. Of the 340 distinct CSS features used in MWG's code examples, these skills already covered 222. Most of the other 118 are basic properties or examples written with physical properties; only a few clusters were real gaps.

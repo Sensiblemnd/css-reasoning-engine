@@ -265,6 +265,7 @@ Unprefixed `mask` and `mask-image` are Baseline widely available.
 
 - Required: unprefixed properties only. `-webkit-mask-*` is a Stable-feature vendor prefix ([prohibited-patterns.md](prohibited-patterns.md)).
 - Prefer `mask-image` over a gradient overlay element for fade-out edges (truncated text, scroll shadows): it needs no extra element and fades to whatever is behind the element.
+- Never fade out links or controls. A masked-out part is only painted invisible: anything in it stays focusable, clickable and read aloud while users can't see it. End the fade before the first interactive element, or move the controls out of the faded region. As with line clamping, the full content must stay reachable ("Read more", or the full text on the destination page).
 - `black`/`white`/`transparent` in a mask gradient are alpha/luminance stops, not design colors, so they are exempt from the token rule.
 - Masks clip `outline` and the hit area exactly like `clip-path`. The same never-on-interactive-elements rule applies.
 
@@ -377,7 +378,7 @@ Rules:
 }
 ```
 
-- Prefer `anchor()` to read an offset or size from the anchor element directly in a property value (`top: anchor(bottom)`) only when `position-area` cannot already express the needed placement.
+- Prefer `anchor()` to read an offset or size from the anchor element directly in a property value (`inset-block-start: anchor(self-end)`) only when `position-area` cannot already express the needed placement. Pair logical insets with the `self-start`/`self-end` keywords, which use the anchored element's own writing mode, so the placement mirrors in RTL. Avoid physical `anchor(left)`/`anchor(bottom)` on physical insets.
 - Prefer `position-visibility: anchors-visible` so the anchored element hides once its anchor scrolls out of view, instead of leaving a floating menu with no visible trigger. The CSSWG renamed it to `anchor-visible`, and Chrome 157 (2026-11-03) ships the new name and deprecates the plural. Keep writing `anchors-visible` until the singular ships in Firefox and Safari, which so far have only the plural. A reviewer must not flag the plural as an error.
 - On `enterprise`/`legacy` (capability `false`): position overlays with popover default placement or a positioned container, not a JavaScript positioning library.
 
